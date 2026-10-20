@@ -1,0 +1,23 @@
+# Dependencies
+node_modules
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist
+build
+.next/
+
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+
+# System files
+.DS_Store

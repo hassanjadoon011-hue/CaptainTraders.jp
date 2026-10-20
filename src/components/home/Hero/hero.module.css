@@ -1,0 +1,75 @@
+.hero {
+  position: relative;
+  width: 100%;
+  height: 92vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  padding-left: 6%;
+  overflow: hidden;
+}
+
+/* DARK + LIGHT PROFESSIONAL GRADIENT */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(10, 22, 40, 0.75),
+    rgba(10, 22, 40, 0.2),
+    rgba(10, 22, 40, 0)
+  );
+}
+
+/* TEXT CONTENT */
+.content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  max-width: 600px;
+}
+
+.content h1 {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.content p {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 25px;
+}
+
+/* BUTTONS */
+.buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.buttons button {
+  padding: 12px 22px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.buttons button:first-child {
+  background: #0369a1;
+  color: white;
+}
+
+.buttons button:last-child {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+}
+
+.buttons button:hover {
+  transform: translateY(-2px);
+}
