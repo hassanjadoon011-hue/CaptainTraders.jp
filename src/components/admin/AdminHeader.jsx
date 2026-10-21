@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Bell, X, Car, MessageSquare } from "lucide-react";
+import { Search, Bell, X, Car, MessageSquare, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 
-export default function AdminHeader() {
+export default function AdminHeader({ onMenuClick }) {
   const navigate = useNavigate();
 
   // SEARCH
@@ -18,7 +18,6 @@ export default function AdminHeader() {
   const [unreadCount, setUnreadCount] = useState(0);
   const notifRef = useRef(null);
 
-  /* ── FETCH LATEST MESSAGES + UNREAD COUNT ── */
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await axiosClient.get("/messages", { params: { limit: 5 } });
@@ -32,20 +31,14 @@ export default function AdminHeader() {
 
   useEffect(() => {
     fetchNotifications();
-
-    // refresh every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-
-    // refresh instantly when the Messages page changes something
     window.addEventListener("messages-updated", fetchNotifications);
-
     return () => {
       clearInterval(interval);
       window.removeEventListener("messages-updated", fetchNotifications);
     };
   }, [fetchNotifications]);
 
-  /* ── OPEN A NOTIFICATION (mark as read, then go to messages) ── */
   const handleNotificationClick = async (message) => {
     try {
       if (!message.isRead) {
@@ -59,13 +52,11 @@ export default function AdminHeader() {
     navigate("/admin/messages");
   };
 
-  /* ── SEARCH CARS ── */
   useEffect(() => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
-
     const timeout = setTimeout(async () => {
       setSearching(true);
       try {
@@ -79,11 +70,10 @@ export default function AdminHeader() {
         setSearching(false);
       }
     }, 400);
-
     return () => clearTimeout(timeout);
   }, [query]);
 
-  /* ── CLOSE DROPDOWNS ON OUTSIDE CLICK ── */
+  // touchstart is added so dropdowns also close on touch screens
   useEffect(() => {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -95,10 +85,13 @@ export default function AdminHeader() {
       }
     };
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
   }, []);
 
-  /* ── LOGOUT ── */
   const handleLogout = async () => {
     try {
       await axiosClient.post("/admin/logout");
@@ -110,17 +103,26 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm z-50 relative">
+    <header className="h-16 bg-white border-b flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 shadow-sm z-50 relative shrink-0">
+
+      {/* HAMBURGER (mobile only) */}
+      <button
+        onClick={onMenuClick}
+        className="md:hidden p-2 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 shrink-0"
+        aria-label="Open menu"
+      >
+        <Menu size={22} />
+      </button>
 
       {/* SEARCH */}
-      <div ref={searchRef} className="relative w-96">
-        <div className="flex items-center bg-gray-100 px-4 py-2 rounded-lg gap-2">
+      <div ref={searchRef} className="relative flex-1 min-w-0 max-w-sm md:max-w-md">
+        <div className="flex items-center bg-gray-100 px-3 sm:px-4 py-2 rounded-lg gap-2">
           <Search size={16} className="text-gray-400 shrink-0" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search cars..."
-            className="bg-transparent w-full outline-none text-sm text-gray-600 placeholder-gray-400"
+            className="bg-transparent w-full min-w-0 outline-none text-sm text-gray-600 placeholder-gray-400"
           />
           {query && (
             <button onClick={() => { setQuery(""); setSearchResults([]); }}>
@@ -129,9 +131,8 @@ export default function AdminHeader() {
           )}
         </div>
 
-        {/* SEARCH DROPDOWN */}
         {(searchResults.length > 0 || searching) && (
-          <div className="absolute top-full mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50">
+          <div className="absolute top-full mt-2 w-full min-w-[220px] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50">
             {searching ? (
               <div className="px-4 py-3 text-sm text-gray-400">Searching...</div>
             ) : (
@@ -148,8 +149,8 @@ export default function AdminHeader() {
                   <div className="w-7 h-7 bg-[#29ABE2]/10 rounded-lg flex items-center justify-center shrink-0">
                     <Car size={13} className="text-[#29ABE2]" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
                       {car.make} {car.model}
                     </p>
                     <p className="text-xs text-gray-400">
@@ -164,25 +165,26 @@ export default function AdminHeader() {
       </div>
 
       {/* RIGHT */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-3 sm:gap-5 shrink-0">
 
         {/* NOTIFICATION BELL */}
-        <div ref={notifRef} className="relative">
+        <div ref={notifRef} className="sm:relative">
           <button
             onClick={() => setShowNotifs((p) => !p)}
-            className="relative text-gray-500 hover:text-[#29ABE2] transition"
+            className="relative p-1 text-gray-500 hover:text-[#29ABE2] transition"
+            aria-label="Notifications"
           >
             <Bell size={20} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </button>
 
-          {/* NOTIFICATION DROPDOWN */}
+          {/* Phones: pinned under the header, full width. sm and up: under the bell */}
           {showNotifs && (
-            <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden z-50">
+            <div className="fixed left-3 right-3 top-[68px] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-80 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden z-50">
 
               <div className="px-4 py-3 border-b flex items-center justify-between">
                 <p className="text-sm font-bold text-gray-800">Notifications</p>
@@ -193,9 +195,7 @@ export default function AdminHeader() {
 
               <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
                 {messages.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-center text-gray-400">
-                    No notifications
-                  </p>
+                  <p className="px-4 py-6 text-sm text-center text-gray-400">No notifications</p>
                 ) : (
                   messages.map((m) => (
                     <div
@@ -210,7 +210,7 @@ export default function AdminHeader() {
                           <MessageSquare size={13} className="text-green-500" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`text-sm text-gray-800 ${m.isRead ? "font-medium" : "font-bold"}`}>
+                          <p className={`text-sm text-gray-800 truncate ${m.isRead ? "font-medium" : "font-bold"}`}>
                             {m.name}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{m.message}</p>
@@ -232,7 +232,6 @@ export default function AdminHeader() {
                   View all messages →
                 </button>
               </div>
-
             </div>
           )}
         </div>
@@ -246,8 +245,8 @@ export default function AdminHeader() {
         </button>
 
         {/* ADMIN INFO */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="text-right hidden lg:block">
             <p className="text-sm font-bold text-gray-800">Admin</p>
             <p className="text-xs text-gray-400">Super Admin</p>
           </div>
@@ -255,7 +254,6 @@ export default function AdminHeader() {
             A
           </div>
         </div>
-
       </div>
     </header>
   );

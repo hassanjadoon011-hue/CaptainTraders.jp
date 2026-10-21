@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import axiosClient from "../api/axiosClient"
 
-// "1000" -> "1000 cc", "2.0L" stays as is
 const formatEngine = (engine) => {
   if (!engine) return null
   const value = String(engine).trim()
@@ -47,7 +46,7 @@ export default function CarDetailPage() {
 
   if (!car) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <p>Car not found</p>
         <Link to="/cars" className="text-blue-500 mt-2">
           Back to Inventory
@@ -88,16 +87,17 @@ export default function CarDetailPage() {
   ].filter((item) => item.value)
 
   return (
-    <div className="bg-[#F5F9FF] min-h-screen py-10">
-      <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+    <div className="bg-[#F5F9FF] min-h-screen py-6 md:py-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-6 md:gap-8">
+
         {/* LEFT SIDE */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-5 md:space-y-6 min-w-0 order-2 md:order-none">
           {/* MAIN IMAGE */}
           <div className="relative bg-white border rounded-xl overflow-hidden">
             <img
               src={images[activeImg]}
               alt={`${car.make} ${car.model}`}
-              className={`w-full h-[450px] object-cover ${isSold ? "opacity-80" : ""}`}
+              className={`w-full h-60 sm:h-80 md:h-[450px] object-cover ${isSold ? "opacity-80" : ""}`}
             />
             {isSold && (
               <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
@@ -108,14 +108,14 @@ export default function CarDetailPage() {
 
           {/* THUMBNAILS */}
           {images.length > 1 && (
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               {images.map((img, index) => (
                 <img
                   key={index}
                   src={img}
                   alt={`Thumbnail ${index + 1}`}
                   onClick={() => setActiveImg(index)}
-                  className={`h-20 w-24 object-cover cursor-pointer rounded border-2 ${
+                  className={`h-16 w-20 sm:h-20 sm:w-24 shrink-0 object-cover cursor-pointer rounded border-2 ${
                     index === activeImg ? "border-blue-500" : "border-gray-200"
                   }`}
                 />
@@ -125,19 +125,19 @@ export default function CarDetailPage() {
 
           {/* DESCRIPTION */}
           {car.description && (
-            <div className="bg-white border rounded-xl p-5">
+            <div className="bg-white border rounded-xl p-4 sm:p-5">
               <h2 className="font-bold mb-3 text-lg">Description</h2>
-              <p className="text-gray-600 whitespace-pre-line">{car.description}</p>
+              <p className="text-gray-600 whitespace-pre-line break-words">{car.description}</p>
             </div>
           )}
 
           {/* SPECIFICATIONS */}
-          <div className="bg-white border rounded-xl p-5">
+          <div className="bg-white border rounded-xl p-4 sm:p-5">
             <h2 className="font-bold mb-4 text-lg">Specifications</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {specs.map((spec) => (
-                <div key={spec.label}>
+                <div key={spec.label} className="break-words">
                   <span className="font-semibold">{spec.label}:</span>{" "}
                   {spec.value}
                 </div>
@@ -146,14 +146,14 @@ export default function CarDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
-        <div>
-          <div className="bg-white border rounded-xl p-5 sticky top-5">
-            <h1 className="text-2xl font-bold">
+        {/* RIGHT SIDE (shown first on phones) */}
+        <div className="order-1 md:order-none min-w-0">
+          <div className="bg-white border rounded-xl p-4 sm:p-5 md:sticky md:top-5">
+            <h1 className="text-xl sm:text-2xl font-bold">
               {car.make} {car.model} {car.year}
             </h1>
 
-            <p className="text-3xl font-bold text-blue-600 mt-4">
+            <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-3 sm:mt-4">
               USD {Number(car.price || 0).toLocaleString()}
             </p>
 

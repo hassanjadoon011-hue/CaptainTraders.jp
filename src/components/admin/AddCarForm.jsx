@@ -41,13 +41,25 @@ const input =
 const select =
   "w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-[#29ABE2] focus:border-transparent outline-none transition bg-white";
 
+const card = "bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6";
+
+// 1 column on phones, 2 on tablets, 3 on laptops
+const grid3 = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
+
+// The admin page scrolls inside <main>, not the window
+const scrollToTop = () => {
+  const main = document.querySelector("main");
+  if (main) main.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 function SectionTitle({ icon: Icon, title, subtitle }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-9 h-9 bg-[#29ABE2]/10 rounded-lg flex items-center justify-center">
+      <div className="w-9 h-9 bg-[#29ABE2]/10 rounded-lg flex items-center justify-center shrink-0">
         <Icon size={18} className="text-[#29ABE2]" />
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-bold text-gray-800">{title}</p>
         <p className="text-xs text-gray-400">{subtitle}</p>
       </div>
@@ -57,7 +69,7 @@ function SectionTitle({ icon: Icon, title, subtitle }) {
 
 function Field({ label, children }) {
   return (
-    <div>
+    <div className="min-w-0">
       <label className="block text-xs font-medium text-gray-500 mb-1.5">{label}</label>
       {children}
     </div>
@@ -149,7 +161,7 @@ export default function AddCarForm() {
     const problem = validate();
     if (problem) {
       setError(problem);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
       return;
     }
 
@@ -181,12 +193,12 @@ export default function AddCarForm() {
       setSuccess(true);
       setForm(EMPTY);
       window.dispatchEvent(new Event("cars-updated"));
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Error adding car. Please try again.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
     } finally {
       setLoading(false);
     }
@@ -196,8 +208,8 @@ export default function AddCarForm() {
     <div className="max-w-5xl mx-auto">
 
       {/* PAGE HEADER */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Add New Car</h1>
+      <div className="mb-5 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Add New Car</h1>
         <p className="text-sm text-gray-500 mt-1">
           Fill in the details below to add a new vehicle to your inventory
         </p>
@@ -205,30 +217,30 @@ export default function AddCarForm() {
 
       {/* SUCCESS BANNER */}
       {success && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-5 py-3 rounded-xl mb-6">
-          <CheckCircle size={18} />
+        <div className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 px-4 sm:px-5 py-3 rounded-xl mb-5 sm:mb-6">
+          <CheckCircle size={18} className="shrink-0 mt-0.5" />
           <p className="text-sm font-medium">Car added to inventory successfully!</p>
         </div>
       )}
 
       {/* ERROR BANNER */}
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-3 rounded-xl mb-6">
-          <AlertCircle size={18} />
+        <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-5 py-3 rounded-xl mb-5 sm:mb-6">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" />
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
         {/* ── BASIC INFORMATION ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={Car}
             title="Basic Information"
             subtitle="Make, model and year of the vehicle"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Make *">
               <input className={input} name="make" placeholder="e.g. Toyota" value={form.make} onChange={handleChange} />
             </Field>
@@ -242,13 +254,13 @@ export default function AddCarForm() {
         </div>
 
         {/* ── PRICING & CONDITION ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={DollarSign}
             title="Pricing & Condition"
             subtitle="Set the price, mileage and vehicle condition"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Price ($) *">
               <input className={input} name="price" inputMode="numeric" placeholder="e.g. 15000" value={form.price} onChange={handleChange} />
             </Field>
@@ -267,13 +279,13 @@ export default function AddCarForm() {
         </div>
 
         {/* ── ENGINE & PERFORMANCE ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={Zap}
             title="Engine & Performance"
             subtitle="Technical specifications of the vehicle"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Engine (cc)">
               <input className={input} name="engine" placeholder="e.g. 1800" value={form.engine} onChange={handleChange} />
             </Field>
@@ -293,13 +305,13 @@ export default function AddCarForm() {
         </div>
 
         {/* ── TRANSMISSION & BODY ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={Gauge}
             title="Transmission & Body"
             subtitle="Drivetrain, transmission and body style"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Transmission">
               <select className={select} name="transmission" value={form.transmission} onChange={handleChange}>
                 <option value="">Select transmission</option>
@@ -330,13 +342,13 @@ export default function AddCarForm() {
         </div>
 
         {/* ── APPEARANCE ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={Palette}
             title="Appearance, Identity & Location"
             subtitle="Color, VIN number and where the car is located"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Color">
               <input className={input} name="color" placeholder="e.g. Pearl White" value={form.color} onChange={handleChange} />
             </Field>
@@ -350,13 +362,13 @@ export default function AddCarForm() {
         </div>
 
         {/* ── LISTING OPTIONS ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={CheckCircle}
             title="Listing Options"
             subtitle="Choose whether the car is for sale and if it should be highlighted"
           />
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Status">
               <select className={select} name="status" value={form.status} onChange={handleChange}>
                 <option value="available">Available</option>
@@ -364,7 +376,7 @@ export default function AddCarForm() {
               </select>
             </Field>
             <div className="flex items-end">
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer pb-2.5">
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer sm:pb-2.5">
                 <input
                   type="checkbox"
                   checked={form.isFeatured}
@@ -380,7 +392,7 @@ export default function AddCarForm() {
         </div>
 
         {/* ── DESCRIPTION ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={FileText}
             title="Description"
@@ -396,7 +408,7 @@ export default function AddCarForm() {
         </div>
 
         {/* ── IMAGE UPLOAD ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className={card}>
           <SectionTitle
             icon={Upload}
             title="Vehicle Images *"
@@ -404,12 +416,12 @@ export default function AddCarForm() {
           />
 
           <label className="block cursor-pointer">
-            <div className="border-2 border-dashed border-gray-200 hover:border-[#29ABE2] rounded-xl p-8 text-center transition group">
+            <div className="border-2 border-dashed border-gray-200 hover:border-[#29ABE2] rounded-xl p-6 sm:p-8 text-center transition group">
               <div className="w-12 h-12 bg-[#29ABE2]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Upload size={20} className="text-[#29ABE2]" />
               </div>
               <p className="text-sm font-semibold text-gray-700 group-hover:text-[#29ABE2] transition">
-                Click to upload images
+                Tap to upload images
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 PNG, JPG, WEBP supported — multiple files allowed
@@ -430,7 +442,7 @@ export default function AddCarForm() {
           </label>
 
           {form.images.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
               {form.images.map((img, i) => (
                 <div key={`${img}-${i}`} className="relative group">
                   <img
@@ -443,12 +455,14 @@ export default function AddCarForm() {
                       Cover
                     </span>
                   )}
+                  {/* Always visible on touch screens, hover-only on laptops */}
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
-                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    aria-label="Remove image"
+                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition"
                   >
-                    <X size={10} />
+                    <X size={12} />
                   </button>
                 </div>
               ))}
@@ -457,21 +471,21 @@ export default function AddCarForm() {
         </div>
 
         {/* ── SUBMIT ── */}
-        <div className="flex items-center justify-end gap-3 pb-6">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pb-6">
           <button
             type="button"
             onClick={() => {
               setForm(EMPTY);
               setError("");
             }}
-            className="px-6 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            className="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
           >
             Reset Form
           </button>
           <button
             type="submit"
             disabled={loading || uploading}
-            className="px-8 py-2.5 text-sm font-semibold text-white bg-[#29ABE2] hover:bg-[#1a9fd4] disabled:opacity-50 rounded-lg transition shadow-sm"
+            className="w-full sm:w-auto px-8 py-2.5 text-sm font-semibold text-white bg-[#29ABE2] hover:bg-[#1a9fd4] disabled:opacity-50 rounded-lg transition shadow-sm"
           >
             {loading ? "Saving..." : "Add Car to Inventory"}
           </button>

@@ -34,16 +34,13 @@ export default function HomePage() {
     navigate(`/cars?make=${encodeURIComponent(make)}`)
   }
 
-  // Featured: prefer flagged cars, fall back to the newest 6
   const flagged = cars.filter(c => c.isFeatured).slice(0, 6)
   const displayFeatured = flagged.length > 0 ? flagged : cars.slice(0, 6)
   const featuredIds = new Set(displayFeatured.map(c => c._id))
 
-  // Recently added photos mosaic
   const carsWithImages = cars.filter(c => c.images?.length > 0)
   const recentlyAddedImages = carsWithImages.slice(0, 7)
 
-  // Latest inventory — everything not already shown as featured
   const latestInventory = cars.filter(c => !featuredIds.has(c._id)).slice(0, 9)
 
   const SkeletonCard = () => (
@@ -62,34 +59,35 @@ export default function HomePage() {
   )
 
   return (
-    <div className="bg-[#F5F9FF] min-h-screen">
+    <div className="bg-[#F5F9FF] min-h-screen overflow-x-hidden">
 
       <Hero />
       <SearchPanel />
 
-      <div className="max-w-[1400px] mx-auto px-6 flex gap-6 mt-10">
+      {/* Stacks on phones/tablets (make chips on top), side by side on laptops */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-4 lg:gap-6 mt-6 sm:mt-10 pb-10">
         <LeftSidebar onMakeSelect={handleMakeSelect} />
 
-        <div className="flex-1 space-y-12 min-w-0">
+        <div className="flex-1 space-y-10 sm:space-y-12 min-w-0">
 
           {/* ── Featured Cars ── */}
           <section>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-5">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Featured Cars</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Featured Cars</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Hand-picked top listings</p>
               </div>
               <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
                 Top Picks
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {loading
                 ? Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
                 : displayFeatured.length > 0
                   ? displayFeatured.map(car => <CarCard key={car._id} car={car} />)
                   : (
-                    <div className="col-span-3 text-center py-16 text-gray-400">
+                    <div className="col-span-full text-center py-16 text-gray-400">
                       <p className="text-sm">No cars available right now.</p>
                     </div>
                   )
@@ -99,12 +97,12 @@ export default function HomePage() {
 
           {/* ── Recently Added Photos ── */}
           <section>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Recently Added</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Recently Added</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Latest photos from our inventory</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
                   Live Updates
@@ -119,7 +117,7 @@ export default function HomePage() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[420px]">
+              <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[260px] sm:h-[340px] lg:h-[420px]">
                 <SkeletonImage className="col-span-2 row-span-2 h-full" />
                 <SkeletonImage className="col-span-1 row-span-1 h-full" />
                 <SkeletonImage className="col-span-1 row-span-1 h-full" />
@@ -127,7 +125,7 @@ export default function HomePage() {
                 <SkeletonImage className="col-span-1 row-span-1 h-full" />
               </div>
             ) : recentlyAddedImages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400">
+              <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400 px-4 text-center">
                 <svg className="w-10 h-10 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -135,7 +133,7 @@ export default function HomePage() {
                 <p className="text-xs text-gray-300 mt-1">Photos will appear here once listings are added</p>
               </div>
             ) : (
-              <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[420px]">
+              <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[260px] sm:h-[340px] lg:h-[420px]">
 
                 {/* Hero tile */}
                 {recentlyAddedImages[0] && (
@@ -149,25 +147,25 @@ export default function HomePage() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <span className="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex items-center gap-2">
+                      <span className="bg-blue-600 text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
                         Newest
                       </span>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5">
+                      <p className="text-white/70 text-[10px] sm:text-xs font-medium uppercase tracking-widest mb-1">
                         {recentlyAddedImages[0].year}
                       </p>
-                      <p className="text-white font-bold text-xl leading-tight">
+                      <p className="text-white font-bold text-sm sm:text-xl leading-tight">
                         {recentlyAddedImages[0].make} {recentlyAddedImages[0].model}
                       </p>
-                      <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center justify-between mt-2 sm:mt-3">
                         {recentlyAddedImages[0].price ? (
-                          <span className="text-white font-bold text-lg">
+                          <span className="text-white font-bold text-sm sm:text-lg">
                             ${Number(recentlyAddedImages[0].price).toLocaleString()}
                           </span>
                         ) : <span />}
-                        <span className="flex items-center gap-1.5 text-white/90 text-xs bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 group-hover:bg-white/30 transition-colors">
+                        <span className="hidden sm:flex items-center gap-1.5 text-white/90 text-xs bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 group-hover:bg-white/30 transition-colors">
                           View Details →
                         </span>
                       </div>
@@ -189,7 +187,6 @@ export default function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                    {/* +More overlay on last tile */}
                     {idx === 3 && carsWithImages.length > 5 && (
                       <div
                         className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center cursor-pointer"
@@ -198,10 +195,10 @@ export default function HomePage() {
                           navigate('/cars')
                         }}
                       >
-                        <span className="text-white text-3xl font-bold">
+                        <span className="text-white text-xl sm:text-3xl font-bold">
                           +{carsWithImages.length - 5}
                         </span>
-                        <span className="text-white/70 text-xs mt-1 font-medium">View all photos</span>
+                        <span className="text-white/70 text-[10px] sm:text-xs mt-1 font-medium text-center px-1">View all</span>
                       </div>
                     )}
 
@@ -219,9 +216,9 @@ export default function HomePage() {
 
           {/* ── Latest Inventory ── */}
           <section>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-5">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Latest Inventory</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Latest Inventory</h2>
                 <p className="text-sm text-gray-400 mt-0.5">All available listings</p>
               </div>
               <button
@@ -231,13 +228,13 @@ export default function HomePage() {
                 View All →
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {loading
                 ? Array(9).fill(0).map((_, i) => <SkeletonCard key={i} />)
                 : latestInventory.length > 0
                   ? latestInventory.map(car => <CarCard key={car._id} car={car} />)
                   : (
-                    <div className="col-span-3 text-center py-16 text-gray-400">
+                    <div className="col-span-full text-center py-16 text-gray-400">
                       <p className="text-sm">No additional listings found.</p>
                     </div>
                   )

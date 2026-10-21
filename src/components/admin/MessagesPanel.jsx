@@ -76,7 +76,7 @@ export default function MessagesPanel() {
   return (
     <div className="bg-white border border-gray-100 rounded-xl">
       {/* HEADER */}
-      <div className="flex items-center justify-between px-5 py-4 border-b">
+      <div className="flex items-center justify-between flex-wrap gap-2 px-4 sm:px-5 py-4 border-b">
         <h2 className="font-bold text-gray-800">Messages</h2>
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
@@ -106,7 +106,7 @@ export default function MessagesPanel() {
             return (
               <div
                 key={m._id}
-                className={`px-5 py-4 ${m.isRead ? "" : "bg-[#29ABE2]/5"}`}
+                className={`px-4 sm:px-5 py-4 ${m.isRead ? "" : "bg-[#29ABE2]/5"}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 bg-[#29ABE2]/10 rounded-full flex items-center justify-center shrink-0">
@@ -117,8 +117,8 @@ export default function MessagesPanel() {
                     onClick={() => handleOpen(m)}
                     className="flex-1 min-w-0 text-left"
                   >
-                    <div className="flex items-center gap-2">
-                      <p className={`text-sm text-gray-800 ${m.isRead ? "font-medium" : "font-bold"}`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`text-sm text-gray-800 truncate ${m.isRead ? "font-medium" : "font-bold"}`}>
                         {m.name}
                       </p>
                       {!m.isRead && (
@@ -130,7 +130,7 @@ export default function MessagesPanel() {
                     </div>
 
                     {(m.subject || m.country) && (
-                      <p className="text-xs text-[#29ABE2] font-medium mt-0.5">
+                      <p className="text-xs text-[#29ABE2] font-medium mt-0.5 break-words">
                         {[m.subject, m.country].filter(Boolean).join(" · ")}
                       </p>
                     )}
@@ -147,14 +147,14 @@ export default function MessagesPanel() {
                   <button
                     onClick={() => handleDelete(m._id)}
                     title="Delete message"
-                    className="text-gray-300 hover:text-red-500 transition shrink-0"
+                    className="text-gray-300 hover:text-red-500 transition shrink-0 p-1"
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
 
                 {isOpen && (
-                  <div className="mt-3 ml-12 flex items-center gap-3">
+                  <div className="mt-3 ml-0 sm:ml-12 flex items-center gap-3 flex-wrap">
                     {m.email ? (
                       <a
                         href={`mailto:${m.email}`}
@@ -166,7 +166,7 @@ export default function MessagesPanel() {
                       <span className="text-xs text-gray-400">No email provided</span>
                     )}
                     {m.email && (
-                      <span className="text-xs text-gray-400">{m.email}</span>
+                      <span className="text-xs text-gray-400 break-all">{m.email}</span>
                     )}
                   </div>
                 )}

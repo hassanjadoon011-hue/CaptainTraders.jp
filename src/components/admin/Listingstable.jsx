@@ -6,6 +6,16 @@ const LIMIT = 10;
 
 const notifyStats = () => window.dispatchEvent(new Event("cars-updated"));
 
+const conditionClass = (condition) =>
+  condition === "New"
+    ? "bg-green-100 text-green-600"
+    : condition === "Used"
+    ? "bg-yellow-100 text-yellow-600"
+    : "bg-blue-100 text-blue-600";
+
+const statusClass = (isSold) =>
+  isSold ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600";
+
 export default function Listingstable() {
   const [cars,       setCars]       = useState([]);
   const [total,      setTotal]      = useState(0);
@@ -39,7 +49,6 @@ export default function Listingstable() {
     }
   }, []);
 
-  // Fetch on page change, and (debounced) when the search text changes
   useEffect(() => {
     const timeout = setTimeout(() => fetchCars(page, search), search ? 400 : 0);
     return () => clearTimeout(timeout);
@@ -55,7 +64,6 @@ export default function Listingstable() {
     try {
       await axiosClient.delete(`/cars/${id}`);
 
-      // If that was the last car on this page, go back one page
       if (cars.length === 1 && page > 1) {
         setPage(page - 1);
       } else {
@@ -97,11 +105,38 @@ export default function Listingstable() {
     return result;
   };
 
+  const renderActions = (car, nowrap = false) => {
+    const isSold = car.status === "sold";
+    return (
+      <div className={`flex gap-2 ${nowrap ? "whitespace-nowrap" : "flex-wrap"}`}>
+        <button
+          onClick={() => navigate(`/admin/cars/edit/${car._id}`)}
+          className="bg-[#29ABE2] hover:bg-[#1a9fd4] text-white text-xs px-3 py-1.5 rounded-lg transition"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => handleToggleStatus(car)}
+          disabled={busyId === car._id}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+        >
+          {busyId === car._id ? "..." : isSold ? "Mark available" : "Mark sold"}
+        </button>
+        <button
+          onClick={() => handleDelete(car._id)}
+          className="bg-red-50 hover:bg-red-100 text-red-500 text-xs px-3 py-1.5 rounded-lg transition"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
 
       {/* ── Header ── */}
-      <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+      <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h2 className="text-base font-bold text-gray-800">Cars Listing</h2>
           <span className="text-xs bg-[#29ABE2]/10 text-[#29ABE2] font-semibold px-2 py-1 rounded-full">
@@ -112,19 +147,64 @@ export default function Listingstable() {
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Filter by make or model..."
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#29ABE2] w-56"
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#29ABE2] w-full sm:w-56"
         />
       </div>
 
-      {/* ── Table ── */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      {/* ── CARDS (phones and tablets) ── */}
+      <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 sm:p-4">
+        {loading ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} className="border border-gray-100 rounded-xl p-4 animate-pulse space-y-3">
+              <div className="h-4 bg-gray-100 rounded w-2/3" />
+              <div className="h-3 bg-gray-100 rounded w-1/3" />
+              <div className="h-7 bg-gray-100 rounded w-full" />
+            </div>
+          ))
+        ) : cars.length === 0 ? (
+          <p className="col-span-full py-8 text-center text-sm text-gray-400">No cars found</p>
+        ) : (
+          cars.map((car) => {
+            const isSold = car.status === "sold";
+            return (
+              <div
+                key={car._id}
+                className={`border border-gray-100 rounded-xl p-4 space-y-3 min-w-0 ${isSold ? "bg-gray-50/60" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-800 truncate">
+                      {car.make} {car.model}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {car.year} · ${car.price?.toLocaleString()}
+                    </p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${statusClass(isSold)}`}>
+                    {isSold ? "Sold" : "Available"}
+                  </span>
+                </div>
+
+                <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${conditionClass(car.condition)}`}>
+                  {car.condition || "N/A"}
+                </span>
+
+                {renderActions(car)}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ── TABLE (laptops and larger) ── */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
               <th className="px-5 py-3 text-left">Car</th>
               <th className="px-5 py-3 text-left">Price</th>
               <th className="px-5 py-3 text-left">Year</th>
-              <th className="px-5 py-3 text-left">Condition</th>
+              <th className="px-5 py-3 text-left hidden xl:table-cell">Condition</th>
               <th className="px-5 py-3 text-left">Status</th>
               <th className="px-5 py-3 text-left">Actions</th>
             </tr>
@@ -136,7 +216,7 @@ export default function Listingstable() {
                   <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-32" /></td>
                   <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
                   <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-12" /></td>
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
+                  <td className="px-5 py-3 hidden xl:table-cell"><div className="h-4 bg-gray-100 rounded w-16" /></td>
                   <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
                   <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-24" /></td>
                 </tr>
@@ -157,47 +237,17 @@ export default function Listingstable() {
                     </td>
                     <td className="px-5 py-3 text-gray-600">${car.price?.toLocaleString()}</td>
                     <td className="px-5 py-3 text-gray-600">{car.year}</td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        car.condition === "New"
-                          ? "bg-green-100 text-green-600"
-                          : car.condition === "Used"
-                          ? "bg-yellow-100 text-yellow-600"
-                          : "bg-blue-100 text-blue-600"
-                      }`}>
+                    <td className="px-5 py-3 hidden xl:table-cell">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${conditionClass(car.condition)}`}>
                         {car.condition || "N/A"}
                       </span>
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        isSold ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                      }`}>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusClass(isSold)}`}>
                         {isSold ? "Sold" : "Available"}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
-                      <div className="flex gap-2 whitespace-nowrap">
-                        <button
-                          onClick={() => navigate(`/admin/cars/edit/${car._id}`)}
-                          className="bg-[#29ABE2] hover:bg-[#1a9fd4] text-white text-xs px-3 py-1.5 rounded-lg transition"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleToggleStatus(car)}
-                          disabled={busyId === car._id}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
-                        >
-                          {busyId === car._id ? "..." : isSold ? "Mark available" : "Mark sold"}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(car._id)}
-                          className="bg-red-50 hover:bg-red-100 text-red-500 text-xs px-3 py-1.5 rounded-lg transition"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                    <td className="px-5 py-3">{renderActions(car, true)}</td>
                   </tr>
                 );
               })
@@ -208,11 +258,11 @@ export default function Listingstable() {
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
+        <div className="px-4 sm:px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
           <p className="text-xs text-gray-400">
             Page {page} of {totalPages} · {total} vehicles
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center flex-wrap gap-1">
             <PageBtn
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}

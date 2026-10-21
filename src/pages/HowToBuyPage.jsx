@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Search, CreditCard, Ship, FileCheck, CheckCircle, ArrowRight } from 'lucide-react'
+import { Search, CreditCard, Ship, FileCheck, CheckCircle } from 'lucide-react'
 
 const BLUE = '#29ABE2'
 
@@ -43,18 +43,17 @@ const STEPS = [
 
 export default function HowToBuyPage() {
   return (
-    <div className="w-full min-h-screen bg-[#F5FBFF]">
+    <div className="w-full min-h-screen bg-[#F5FBFF] overflow-x-hidden">
 
-      {/* HERO (FIXED — NO WHITE ISSUE) */}
+      {/* HERO */}
       <section
-        className="w-full text-center px-6 relative overflow-hidden"
+        className="w-full text-center px-4 sm:px-6 relative overflow-hidden"
         style={{
           background: BLUE,
-          paddingTop: 'calc(68px + 3rem)',
-          paddingBottom: '4rem',
+          paddingTop: 'calc(68px + 2rem)',
+          paddingBottom: '3rem',
         }}
       >
-        {/* subtle pattern */}
         <div
           className="absolute inset-0 opacity-[0.08]"
           style={{
@@ -80,7 +79,7 @@ export default function HowToBuyPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               to="/cars"
-              className="inline-flex items-center gap-2 bg-white font-bold text-sm px-7 py-3 rounded-lg hover:bg-blue-50 transition"
+              className="inline-flex items-center gap-2 bg-white font-bold text-sm px-6 sm:px-7 py-3 rounded-lg hover:bg-blue-50 transition"
               style={{ color: BLUE }}
             >
               Browse Inventory
@@ -88,7 +87,7 @@ export default function HowToBuyPage() {
 
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 border border-white/40 text-white font-semibold text-sm px-7 py-3 rounded-lg hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 border border-white/40 text-white font-semibold text-sm px-6 sm:px-7 py-3 rounded-lg hover:bg-white/10 transition"
             >
               Contact Agent
             </Link>
@@ -98,25 +97,25 @@ export default function HowToBuyPage() {
       </section>
 
       {/* STEPS */}
-      <div className="max-w-[900px] mx-auto px-6 py-16 space-y-8">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-5 sm:space-y-8">
 
         {STEPS.map((step) => (
           <div
             key={step.num}
-            className="bg-white rounded-2xl border border-blue-100 p-8 flex gap-7 shadow-sm"
+            className="bg-white rounded-2xl border border-blue-100 p-5 sm:p-8 flex flex-col sm:flex-row gap-4 sm:gap-7 shadow-sm"
           >
             <div className="flex-shrink-0">
-              <div className="w-14 h-14 rounded-2xl bg-[#E0F5FF] text-[#29ABE2] flex items-center justify-center text-[18px] font-bold">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#E0F5FF] text-[#29ABE2] flex items-center justify-center text-[18px] font-bold">
                 {step.num}
               </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-[#F0FAFF] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-[#F0FAFF] flex items-center justify-center shrink-0">
                   {step.icon}
                 </div>
-                <h2 className="text-[18px] font-bold text-[#0A1628]">
+                <h2 className="text-[17px] sm:text-[18px] font-bold text-[#0A1628]">
                   {step.title}
                 </h2>
               </div>
@@ -128,7 +127,7 @@ export default function HowToBuyPage() {
               <ul className="space-y-1.5">
                 {step.tips.map((t) => (
                   <li key={t} className="flex items-center gap-2 text-sm text-gray-500">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#29ABE2]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#29ABE2] shrink-0" />
                     {t}
                   </li>
                 ))}
@@ -140,10 +139,10 @@ export default function HowToBuyPage() {
       </div>
 
       {/* CTA */}
-      <div className="py-14 bg-[#F5FBFF]">
-        <div className="max-w-[900px] mx-auto px-6 text-center">
+      <div className="py-10 sm:py-14 bg-[#F5FBFF]">
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 text-center">
 
-          <h2 className="text-2xl font-bold text-[#0A1628] mb-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#0A1628] mb-3">
             Ready to find your car?
           </h2>
 
@@ -151,11 +150,11 @@ export default function HowToBuyPage() {
             Browse live inventory or contact our team.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
 
             <Link
               to="/cars"
-              className="px-8 py-3.5 text-white font-bold text-sm rounded-xl hover:opacity-90 transition"
+              className="px-7 sm:px-8 py-3.5 text-white font-bold text-sm rounded-xl hover:opacity-90 transition"
               style={{ background: BLUE }}
             >
               Browse Inventory
@@ -163,7 +162,7 @@ export default function HowToBuyPage() {
 
             <Link
               to="/contact"
-              className="px-8 py-3.5 border border-blue-200 text-[#0A1628] font-semibold text-sm rounded-xl hover:bg-blue-50 transition"
+              className="px-7 sm:px-8 py-3.5 border border-blue-200 text-[#0A1628] font-semibold text-sm rounded-xl hover:bg-blue-50 transition"
             >
               Contact Agent
             </Link>

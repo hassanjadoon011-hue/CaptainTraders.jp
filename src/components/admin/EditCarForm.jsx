@@ -28,9 +28,19 @@ const EMPTY = {
 const input =
   "w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-[#29ABE2] focus:border-transparent outline-none transition placeholder-gray-400 bg-white";
 
+// 1 column on phones, 2 on tablets, 3 on laptops
+const grid3 = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
+
+// The admin page scrolls inside <main>, not the window
+const scrollToTop = () => {
+  const main = document.querySelector("main");
+  if (main) main.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 function Field({ label, children }) {
   return (
-    <div>
+    <div className="min-w-0">
       <label className="block text-xs font-medium text-gray-500 mb-1.5">{label}</label>
       {children}
     </div>
@@ -39,7 +49,7 @@ function Field({ label, children }) {
 
 function Card({ title, children }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
       <p className="text-sm font-bold text-gray-800 mb-4">{title}</p>
       {children}
     </div>
@@ -167,7 +177,7 @@ export default function EditCarForm() {
     const problem = validate();
     if (problem) {
       setError(problem);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
       return;
     }
 
@@ -197,12 +207,12 @@ export default function EditCarForm() {
       });
 
       setSuccess(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
       setTimeout(() => navigate("/admin/cars"), 1200);
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Failed to update car. Please try again.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
     } finally {
       setSaving(false);
     }
@@ -210,12 +220,12 @@ export default function EditCarForm() {
 
   /* ================= STATES ================= */
   if (fetching) {
-    return <p className="p-6 text-sm text-gray-500">Loading car data...</p>;
+    return <p className="p-4 sm:p-6 text-sm text-gray-500">Loading car data...</p>;
   }
 
   if (loadError) {
     return (
-      <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-100 p-8 text-center">
+      <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-100 p-6 sm:p-8 text-center">
         <p className="text-gray-700 font-medium">{loadError}</p>
         <button
           onClick={() => navigate("/admin/cars")}
@@ -229,31 +239,31 @@ export default function EditCarForm() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Edit Car</h1>
+      <div className="mb-5 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Edit Car</h1>
         <p className="text-sm text-gray-500 mt-1">
           Update the details of {form.make} {form.model}
         </p>
       </div>
 
       {success && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-5 py-3 rounded-xl mb-6">
-          <CheckCircle size={18} />
+        <div className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 px-4 sm:px-5 py-3 rounded-xl mb-5 sm:mb-6">
+          <CheckCircle size={18} className="shrink-0 mt-0.5" />
           <p className="text-sm font-medium">Car updated successfully! Redirecting...</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-3 rounded-xl mb-6">
-          <AlertCircle size={18} />
+        <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-5 py-3 rounded-xl mb-5 sm:mb-6">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" />
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         {/* STATUS */}
         <Card title="Listing Status">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Status">
               <select className={input} name="status" value={form.status} onChange={handleChange}>
                 <option value="available">Available</option>
@@ -261,7 +271,7 @@ export default function EditCarForm() {
               </select>
             </Field>
             <div className="flex items-end">
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer pb-2.5">
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer sm:pb-2.5">
                 <input
                   type="checkbox"
                   checked={form.isFeatured}
@@ -278,7 +288,7 @@ export default function EditCarForm() {
 
         {/* BASIC */}
         <Card title="Basic Information">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Make">
               <input className={input} name="make" value={form.make} onChange={handleChange} placeholder="e.g. Toyota" />
             </Field>
@@ -286,19 +296,19 @@ export default function EditCarForm() {
               <input className={input} name="model" value={form.model} onChange={handleChange} placeholder="e.g. Corolla" />
             </Field>
             <Field label="Year">
-              <input className={input} name="year" value={form.year} onChange={handleChange} placeholder="e.g. 2024" />
+              <input className={input} name="year" inputMode="numeric" value={form.year} onChange={handleChange} placeholder="e.g. 2024" />
             </Field>
           </div>
         </Card>
 
         {/* PRICING */}
         <Card title="Pricing & Condition">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Price ($)">
-              <input className={input} name="price" value={form.price} onChange={handleChange} placeholder="e.g. 15000" />
+              <input className={input} name="price" inputMode="numeric" value={form.price} onChange={handleChange} placeholder="e.g. 15000" />
             </Field>
             <Field label="Mileage (km)">
-              <input className={input} name="mileage" value={form.mileage} onChange={handleChange} placeholder="e.g. 45000" />
+              <input className={input} name="mileage" inputMode="numeric" value={form.mileage} onChange={handleChange} placeholder="e.g. 45000" />
             </Field>
             <Field label="Condition">
               <select className={input} name="condition" value={form.condition} onChange={handleChange}>
@@ -313,7 +323,7 @@ export default function EditCarForm() {
 
         {/* ENGINE */}
         <Card title="Engine & Performance">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Engine (cc)">
               <input className={input} name="engine" value={form.engine} onChange={handleChange} placeholder="e.g. 1800" />
             </Field>
@@ -334,7 +344,7 @@ export default function EditCarForm() {
 
         {/* TRANSMISSION & BODY */}
         <Card title="Transmission & Body">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Transmission">
               <select className={input} name="transmission" value={form.transmission} onChange={handleChange}>
                 <option value="">Select transmission</option>
@@ -366,7 +376,7 @@ export default function EditCarForm() {
 
         {/* APPEARANCE */}
         <Card title="Appearance, Identity & Location">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={grid3}>
             <Field label="Color">
               <input className={input} name="color" value={form.color} onChange={handleChange} placeholder="e.g. Pearl White" />
             </Field>
@@ -393,9 +403,9 @@ export default function EditCarForm() {
         {/* IMAGES */}
         <Card title="Vehicle Images">
           <label className="block cursor-pointer">
-            <div className="border-2 border-dashed border-gray-200 hover:border-[#29ABE2] rounded-xl p-6 text-center transition">
+            <div className="border-2 border-dashed border-gray-200 hover:border-[#29ABE2] rounded-xl p-5 sm:p-6 text-center transition">
               <Upload size={20} className="text-[#29ABE2] mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-700">Click to add more images</p>
+              <p className="text-sm font-semibold text-gray-700">Tap to add more images</p>
               {uploading && (
                 <p className="text-[#29ABE2] text-sm mt-2 font-medium animate-pulse">
                   Uploading images...
@@ -412,7 +422,7 @@ export default function EditCarForm() {
           </label>
 
           {form.images.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
               {form.images.map((img, i) => (
                 <div key={`${img}-${i}`} className="relative group">
                   <img
@@ -425,12 +435,14 @@ export default function EditCarForm() {
                       Cover
                     </span>
                   )}
+                  {/* Always visible on touch screens, hover-only on laptops */}
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
-                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    aria-label="Remove image"
+                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition"
                   >
-                    <X size={10} />
+                    <X size={12} />
                   </button>
                 </div>
               ))}
@@ -439,18 +451,18 @@ export default function EditCarForm() {
         </Card>
 
         {/* BUTTONS */}
-        <div className="flex items-center justify-end gap-3 pb-6">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pb-6">
           <button
             type="button"
             onClick={() => navigate("/admin/cars")}
-            className="px-6 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            className="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving || uploading || success}
-            className="px-8 py-2.5 text-sm font-semibold text-white bg-[#29ABE2] hover:bg-[#1a9fd4] disabled:opacity-50 rounded-lg transition shadow-sm"
+            className="w-full sm:w-auto px-8 py-2.5 text-sm font-semibold text-white bg-[#29ABE2] hover:bg-[#1a9fd4] disabled:opacity-50 rounded-lg transition shadow-sm"
           >
             {saving ? "Saving..." : "Update Car"}
           </button>
