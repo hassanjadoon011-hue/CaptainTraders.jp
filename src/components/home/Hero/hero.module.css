@@ -73,3 +73,25 @@
 .buttons button:hover {
   transform: translateY(-2px);
 }
+
+/* MOBILE / TABLET: show the full image so the text isn't cropped */
+@media (max-width: 768px) {
+  .hero {
+    height: auto;
+    aspect-ratio: 16 / 9; /* change to your image's real width / height */
+    background-size: 100% 100%;
+    background-position: center;
+    align-items: flex-end;
+    padding-left: 4%;
+    padding-bottom: 14px;
+  }
+
+  .buttons {
+    gap: 10px;
+  }
+
+  .buttons button {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
