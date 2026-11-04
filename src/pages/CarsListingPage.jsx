@@ -1,3 +1,4 @@
+import { SearchX } from "lucide-react";
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
@@ -211,7 +212,7 @@ export default function CarsListingPage() {
               </svg>
               Filters
               {activeKeys.length > 0 && (
-                <span className="bg-blue-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="bg-[#29ABE2] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {activeKeys.length}
                 </span>
               )}
@@ -219,13 +220,13 @@ export default function CarsListingPage() {
 
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button onClick={() => setView("list")} title="List view" aria-label="List view"
-                className={`p-1.5 rounded-md transition-colors ${view === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"}`}>
+                className={`p-1.5 rounded-md transition-colors ${view === "list" ? "bg-white shadow-sm text-[#1B7DB3]" : "text-gray-400 hover:text-gray-600"}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <button onClick={() => setView("grid")} title="Grid view" aria-label="Grid view"
-                className={`p-1.5 rounded-md transition-colors ${view === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"}`}>
+                className={`p-1.5 rounded-md transition-colors ${view === "grid" ? "bg-white shadow-sm text-[#1B7DB3]" : "text-gray-400 hover:text-gray-600"}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 5h6v6H4zM14 5h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
                 </svg>
@@ -234,7 +235,7 @@ export default function CarsListingPage() {
 
             <select value={filters.sort} onChange={(e) => handleFilter("sort", e.target.value)}
               aria-label="Sort cars"
-              className="border border-gray-200 rounded-lg px-2 sm:px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+              className="border border-gray-200 rounded-lg px-2 sm:px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#29ABE2]/40 bg-white">
               <option value="newest">Newest First</option>
               <option value="price_asc">Price: Low → High</option>
               <option value="price_desc">Price: High → Low</option>
@@ -287,7 +288,7 @@ export default function CarsListingPage() {
               <div className="p-4 border-t">
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="w-full bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg"
+                  className="w-full bg-[#29ABE2] text-white text-sm font-semibold py-2.5 rounded-lg"
                 >
                   Show {total.toLocaleString()} cars
                 </button>
@@ -306,10 +307,10 @@ export default function CarsListingPage() {
                 <button
                   key={k}
                   onClick={() => handleFilter(k, "")}
-                  className="flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-blue-50"
+                  className="flex items-center gap-1.5 bg-white border border-[#29ABE2]/20 text-[#1B7DB3] text-xs font-medium px-3 py-1 rounded-full hover:bg-[#F0FAFF]"
                 >
                   {chipText(k)}
-                  <span className="text-blue-400">×</span>
+                  <span className="text-[#29ABE2]">×</span>
                 </button>
               ))}
               <button onClick={resetFilters} className="text-xs text-gray-500 hover:underline ml-1">
@@ -326,12 +327,12 @@ export default function CarsListingPage() {
             </div>
           ) : cars.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 p-10 sm:p-16 text-center">
-              <p className="text-5xl mb-4">🔍</p>
+              <span className="mx-auto mb-4 w-14 h-14 rounded-full bg-[#E0F5FF] text-[#1B7DB3] flex items-center justify-center"><SearchX size={26} aria-hidden="true" /></span>
               <h3 className="text-lg font-semibold text-gray-700 mb-1">No cars found</h3>
               <p className="text-gray-400 text-sm mb-5">Try adjusting your filters, or send us an inquiry and we will find it for you.</p>
               <div className="flex items-center justify-center gap-4">
-                <button onClick={resetFilters} className="text-sm text-blue-500 hover:underline">Clear filters</button>
-                <Link to="/contact" className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button onClick={resetFilters} className="text-sm text-[#29ABE2] hover:underline">Clear filters</button>
+                <Link to="/contact" className="text-sm bg-[#29ABE2] hover:bg-[#1B7DB3] text-white font-semibold px-4 py-2 rounded-lg transition-colors">
                   Contact us
                 </Link>
               </div>
@@ -376,7 +377,7 @@ function FiltersPanel({ filters, meta, handleFilter, setPrice, resetFilters }) {
     <>
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-semibold text-gray-800 text-sm">Filters</h2>
-        <button onClick={resetFilters} className="text-xs text-blue-500 hover:underline">Reset</button>
+        <button onClick={resetFilters} className="text-xs text-[#29ABE2] hover:underline">Reset</button>
       </div>
 
       <FilterSection label="Quick">
@@ -501,7 +502,7 @@ function FiltersPanel({ filters, meta, handleFilter, setPrice, resetFilters }) {
 }
 
 const fieldClass =
-  "w-full min-w-0 border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400";
+  "w-full min-w-0 border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#29ABE2]/40";
 
 function SelectField({ value, onChange, options, placeholder, disabled }) {
   const items = (options || []).map((o) =>
@@ -546,7 +547,7 @@ function Toggle({ active, onClick, children }) {
       onClick={onClick}
       aria-pressed={active}
       className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-        active ? "bg-blue-500 text-white border-blue-500 font-medium" : "border-gray-200 text-gray-600 hover:bg-blue-50"
+        active ? "bg-[#29ABE2] text-white border-[#29ABE2] font-medium" : "border-gray-200 text-gray-600 hover:bg-[#F0FAFF]"
       }`}
     >
       {children}
@@ -562,8 +563,8 @@ function TypeTab({ active, onClick, children }) {
       aria-pressed={active}
       className={`shrink-0 text-sm px-4 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
         active
-          ? "bg-blue-600 text-white border-blue-600 font-medium"
-          : "bg-white border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-200"
+          ? "bg-[#29ABE2] text-white border-[#29ABE2] font-medium"
+          : "bg-white border-gray-200 text-gray-600 hover:bg-[#F0FAFF] hover:border-[#29ABE2]"
       }`}
     >
       {children}
@@ -576,7 +577,7 @@ function Price({ car, size = "text-xl" }) {
   const hasDiscount = car.originalPrice && car.originalPrice > car.price;
   return (
     <div>
-      <p className={`text-blue-600 font-bold ${size}`}>{money(car.price)}</p>
+      <p className={`text-[#1B7DB3] font-bold ${size}`}>{money(car.price)}</p>
       {hasDiscount ? (
         <p className="text-gray-400 text-xs">
           <span className="line-through">{money(car.originalPrice)}</span>{" "}
@@ -607,7 +608,7 @@ function CarListRow({ car }) {
   const specs = buildSpecs(car);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 sm:items-center">
+    <div className="bg-white rounded-xl border border-gray-100 hover:border-[#29ABE2] hover:shadow-sm transition-all flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 sm:items-center">
       <Link to={`/cars/${car._id}`} className="w-full h-48 sm:w-40 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 block">
         <img
           src={car.images?.[0] || NO_IMAGE}
@@ -635,7 +636,7 @@ function CarListRow({ car }) {
       </div>
       <div className="flex-shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:ml-2 sm:text-right">
         <Price car={car} />
-        <Link to={`/cars/${car._id}`} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+        <Link to={`/cars/${car._id}`} className="bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
           View Car
         </Link>
       </div>
@@ -648,7 +649,7 @@ function CarGridCard({ car }) {
   const specs = buildSpecs(car);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all flex flex-col overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 hover:border-[#29ABE2] hover:shadow-sm transition-all flex flex-col overflow-hidden">
       <Link to={`/cars/${car._id}`} className="relative h-48 sm:h-44 bg-gray-100 flex-shrink-0 block">
         <img
           src={car.images?.[0] || NO_IMAGE}
@@ -671,7 +672,7 @@ function CarGridCard({ car }) {
         </div>
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
           <Price car={car} size="text-base" />
-          <Link to={`/cars/${car._id}`} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <Link to={`/cars/${car._id}`} className="bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
             View
           </Link>
         </div>
@@ -694,7 +695,7 @@ function Badge({ color, children }) {
   const colors = {
     amber: "bg-amber-100 text-amber-700",
     green: "bg-green-100 text-green-700",
-    blue: "bg-blue-100 text-blue-700",
+    blue: "bg-[#E0F5FF] text-[#1B7DB3]",
     red: "bg-red-100 text-red-700",
   };
   return (
@@ -708,7 +709,7 @@ function PageBtn({ onClick, disabled, active, label }) {
   return (
     <button onClick={onClick} disabled={disabled}
       className={`min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium border transition-colors
-        ${active ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}
+        ${active ? "bg-[#29ABE2] text-white border-[#29ABE2]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}
         disabled:opacity-30 disabled:cursor-not-allowed`}>
       {label}
     </button>

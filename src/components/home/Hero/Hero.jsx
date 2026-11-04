@@ -8,9 +8,11 @@ export default function Hero() {
         src={heroImage}
         alt=""
         fetchPriority="high"
-        className="absolute inset-0 -z-20 h-full w-full object-cover"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-left sm:object-center"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0A1628]/90 via-[#0A1628]/70 to-[#0A1628]/30" />
+      {/* Phones: show the left of the photo (its printed text is on the right) and darken it behind the heading */}
+      <div className="sm:hidden absolute inset-0 -z-10 bg-[#0A1628]/40" />
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-14 pb-24 sm:pt-20 sm:pb-32 lg:pt-28 lg:pb-40">
         <h1 className="max-w-2xl text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">

@@ -156,7 +156,7 @@ export default function FAQPage() {
                 aria-current={active === i ? 'true' : undefined}
                 className={`shrink-0 text-left px-4 py-2.5 lg:py-3 text-sm rounded-full lg:rounded-none border lg:border-0 lg:border-b border-gray-200 lg:border-gray-100 transition whitespace-nowrap
                   ${active === i
-                    ? 'bg-[#29ABE2] lg:bg-blue-50 text-white lg:text-[#1B7DB3] font-semibold border-[#29ABE2]'
+                    ? 'bg-[#29ABE2] lg:bg-[#F0FAFF] text-white lg:text-[#1B7DB3] font-semibold border-[#29ABE2]'
                     : 'bg-white text-gray-600 hover:bg-gray-50'}
                 `}
               >
@@ -195,7 +195,7 @@ export default function FAQPage() {
             )
           })}
 
-          <div className="mt-6 bg-blue-50 border border-blue-100 p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-6 bg-[#F0FAFF] border border-[#29ABE2]/20 p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold text-gray-800">Still need help?</h3>
               <p className="text-sm text-gray-600">Contact our team during business hours.</p>

@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react'
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
@@ -66,11 +67,11 @@ export default function SearchPanel() {
   };
 
   return (
-    <div className="w-full bg-sky-400 py-8 px-4 sm:px-6">
+    <div className="w-full bg-[#29ABE2] py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
 
         <h2 className="text-white text-xl sm:text-2xl font-bold mb-6 text-center tracking-wide">
-          🔍 Search For Your Perfect Car
+          <Search size={22} className="inline -mt-1 mr-2" aria-hidden="true" />Search For Your Perfect Car
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
@@ -137,9 +138,9 @@ export default function SearchPanel() {
         <div className="flex justify-center mt-4">
           <button
             onClick={handleSearch}
-            className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold px-6 sm:px-16 py-3 rounded-lg text-base transition-all shadow-xl tracking-wide"
+            className="w-full sm:w-auto bg-[#0A1628] hover:bg-[#13233d] text-white font-bold px-6 sm:px-16 py-3 rounded-lg text-base transition-all shadow-xl tracking-wide"
           >
-            🔍 SEARCH CARS
+            <Search size={16} className="inline -mt-0.5 mr-2" aria-hidden="true" />SEARCH CARS
           </button>
         </div>
 

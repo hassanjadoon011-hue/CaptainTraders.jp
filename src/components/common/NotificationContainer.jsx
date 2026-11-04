@@ -13,7 +13,7 @@ export default function NotificationContainer() {
               ? 'bg-green-500'
               : notif.type === 'error'
               ? 'bg-red-500'
-              : 'bg-blue-500'
+              : 'bg-[#29ABE2]'
           }`}
         >
           {notif.message}

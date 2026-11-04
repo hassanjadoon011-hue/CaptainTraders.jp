@@ -119,7 +119,7 @@ export default function ContactPage() {
           {INFO.map((item) => (
             <div
               key={item.title}
-              className="bg-white border border-blue-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+              className="bg-white border border-[#29ABE2]/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div
@@ -142,7 +142,7 @@ export default function ContactPage() {
             </div>
           ))}
 
-          <div className="bg-white border border-blue-100 rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="bg-white border border-[#29ABE2]/20 rounded-2xl p-5 shadow-sm space-y-3">
             <Link to="/cars" className="flex items-center gap-3 text-sm font-medium text-slate-700 hover:text-[#29ABE2]">
               <Car size={17} color={SKY} /> Looking for a car? Browse our stock
             </Link>
@@ -154,7 +154,7 @@ export default function ContactPage() {
 
         {/* RIGHT FORM */}
         <div className="lg:col-span-2 min-w-0">
-          <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-5 sm:p-8">
+          <div className="bg-white border border-[#29ABE2]/20 rounded-2xl shadow-sm p-5 sm:p-8">
 
             {sent ? (
               <div className="text-center py-16 sm:py-20">

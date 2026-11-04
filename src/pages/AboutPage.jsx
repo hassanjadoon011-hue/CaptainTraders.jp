@@ -109,7 +109,7 @@ export default function AboutPage() {
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link
               to="/cars"
-              className="bg-white font-bold text-sm px-7 py-3 rounded-lg hover:bg-blue-50 transition"
+              className="bg-white font-bold text-sm px-7 py-3 rounded-lg hover:bg-[#F0FAFF] transition"
               style={{ color: BLUE }}
             >
               Browse Stock
@@ -162,7 +162,7 @@ export default function AboutPage() {
               { value: '5', label: 'Simple steps to buy' },
               { value: 'USD', label: 'Prices and invoices' },
             ].map((s) => (
-              <div key={s.label} className="bg-white border border-blue-100 rounded-2xl p-5 text-center shadow-sm">
+              <div key={s.label} className="bg-white border border-[#29ABE2]/20 rounded-2xl p-5 text-center shadow-sm">
                 <p className="text-3xl font-extrabold" style={{ color: BLUE }}>{s.value}</p>
                 <p className="text-xs text-gray-500 mt-1">{s.label}</p>
               </div>
@@ -178,7 +178,7 @@ export default function AboutPage() {
         </section>
 
         {/* HEAD OFFICE */}
-        <section id="company-profile" className="scroll-mt-28 bg-white border border-blue-100 rounded-2xl shadow-sm p-5 sm:p-8">
+        <section id="company-profile" className="scroll-mt-28 bg-white border border-[#29ABE2]/20 rounded-2xl shadow-sm p-5 sm:p-8">
           <SectionTitle icon={Building2}>Head Office</SectionTitle>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -201,7 +201,7 @@ export default function AboutPage() {
         </section>
 
         {/* BANK DETAILS */}
-        <section id="bank-details" className="scroll-mt-28 bg-white border border-blue-100 rounded-2xl shadow-sm p-5 sm:p-8">
+        <section id="bank-details" className="scroll-mt-28 bg-white border border-[#29ABE2]/20 rounded-2xl shadow-sm p-5 sm:p-8">
           <SectionTitle icon={Landmark}>Bank Details</SectionTitle>
 
           {hasBankDetails ? (
@@ -233,7 +233,7 @@ export default function AboutPage() {
             <div
               id={t.id}
               key={t.id}
-              className="scroll-mt-28 p-6 rounded-2xl border border-blue-100 bg-[#F0FAFF]"
+              className="scroll-mt-28 p-6 rounded-2xl border border-[#29ABE2]/20 bg-[#F0FAFF]"
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
@@ -248,7 +248,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="text-center bg-white border border-blue-100 rounded-2xl shadow-sm p-6 sm:p-10">
+        <section className="text-center bg-white border border-[#29ABE2]/20 rounded-2xl shadow-sm p-6 sm:p-10">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Looking for a vehicle?</h2>
           <p className="text-sm text-gray-500 mt-2">Browse our live stock or send us a message.</p>
           <div className="flex flex-wrap justify-center gap-3 mt-6">
@@ -261,7 +261,7 @@ export default function AboutPage() {
             </Link>
             <Link
               to="/contact"
-              className="px-8 py-3 border border-blue-200 text-slate-900 font-semibold text-sm rounded-xl hover:bg-blue-50 transition"
+              className="px-8 py-3 border border-[#29ABE2]/20 text-slate-900 font-semibold text-sm rounded-xl hover:bg-[#F0FAFF] transition"
             >
               Contact Us
             </Link>

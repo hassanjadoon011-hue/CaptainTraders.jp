@@ -151,11 +151,67 @@ export default function CarDetailPage() {
         </div>
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
-          {/* LEFT: photos, details */}
-          <div className="lg:col-span-3 space-y-6 min-w-0">
+          {/* PHOTOS (phones: first) */}
+          <div className="lg:col-span-3 min-w-0">
             <ImageGallery images={car.images || []} alt={title} sold={sold} />
+          </div>
+
+          {/* PRICE + CALCULATOR (phones: right after photos; desktop: right column) */}
+          <div className="lg:col-span-2 lg:col-start-4 lg:row-start-1 lg:row-span-2 space-y-6 min-w-0">
+            <div className="lg:sticky lg:top-4 space-y-6">
+
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Current FOB price</p>
+                <p className="text-3xl font-extrabold text-[#1B7DB3] mt-1">{usd(car.price)}</p>
+
+                {saving > 0 && (
+                  <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500">You save</p>
+                      <p className="font-bold text-green-700">{usd(saving)} ({savingPct}%)</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500">Original FOB price</p>
+                      <p className="font-bold text-gray-500 line-through">{usd(car.originalPrice)}</p>
+                    </div>
+                  </div>
+                )}
+
+                <p className="flex items-center gap-1.5 text-xs text-gray-400 mt-4">
+                  <Eye size={14} /> Page views: {Number(car.views || 0).toLocaleString()}
+                </p>
+
+                {!sold && (
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" })}
+                    className="mt-4 w-full flex items-center justify-center gap-2 border border-[#29ABE2] text-[#1B7DB3] hover:bg-[#29ABE2]/5 font-semibold py-2.5 rounded-lg transition print:hidden"
+                  >
+                    <MessageSquare size={16} /> Send Inquiry
+                  </button>
+                )}
+              </div>
+
+              {sold ? (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
+                  <p className="font-bold text-red-700">This vehicle has been sold</p>
+                  <p className="text-sm text-red-600/80 mt-1">Browse our stock for similar vehicles.</p>
+                  <Link to={`/cars?make=${encodeURIComponent(car.make || "")}`} className="inline-block mt-4 bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+                    More {car.make} cars
+                  </Link>
+                </div>
+              ) : (
+                <div className="print:hidden">
+                  <PriceCalculator key={car._id} car={car} setCalc={setCalc} setQuote={setQuote} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* DETAILS (phones: after the price) */}
+          <div className="lg:col-span-3 lg:col-start-1 space-y-6 min-w-0">
 
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4">Car Details</h2>
@@ -193,57 +249,6 @@ export default function CarDetailPage() {
             )}
           </div>
 
-          {/* RIGHT: price + calculator */}
-          <div className="lg:col-span-2 space-y-6 min-w-0">
-            <div className="lg:sticky lg:top-4 space-y-6">
-
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">Current FOB price</p>
-                <p className="text-3xl font-extrabold text-[#1B7DB3] mt-1">{usd(car.price)}</p>
-
-                <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-400">You save</p>
-                    <p className={`font-bold ${saving ? "text-green-600" : "text-gray-700"}`}>
-                      {saving ? `${usd(saving)} (${savingPct}%)` : "$0.00"}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-400">Original FOB price</p>
-                    <p className="font-bold text-gray-700">{usd(car.originalPrice || car.price)}</p>
-                  </div>
-                </div>
-
-                <p className="flex items-center gap-1.5 text-xs text-gray-400 mt-4">
-                  <Eye size={14} /> Page views: {Number(car.views || 0).toLocaleString()}
-                </p>
-
-                {!sold && (
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" })}
-                    className="mt-4 w-full flex items-center justify-center gap-2 border border-[#29ABE2] text-[#1B7DB3] hover:bg-[#29ABE2]/5 font-semibold py-2.5 rounded-lg transition print:hidden"
-                  >
-                    <MessageSquare size={16} /> Send Inquiry
-                  </button>
-                )}
-              </div>
-
-              {sold ? (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
-                  <p className="font-bold text-red-700">This vehicle has been sold</p>
-                  <p className="text-sm text-red-600/80 mt-1">Browse our stock for similar vehicles.</p>
-                  <Link to={`/cars?make=${encodeURIComponent(car.make || "")}`} className="inline-block mt-4 bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
-                    More {car.make} cars
-                  </Link>
-                </div>
-              ) : (
-                <div className="print:hidden">
-                  <PriceCalculator key={car._id} car={car} setCalc={setCalc} setQuote={setQuote} />
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* FORM */}

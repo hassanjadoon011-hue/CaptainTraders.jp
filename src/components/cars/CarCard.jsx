@@ -3,7 +3,7 @@ import { formatEngine, money, NO_IMAGE } from '../../constants/carOptions'
 
 const BADGES = [
   { key: 'isBestDeal', label: 'Best Deal', className: 'bg-red-100 text-red-700' },
-  { key: 'isRecommended', label: 'Recommended', className: 'bg-blue-100 text-blue-700' },
+  { key: 'isRecommended', label: 'Recommended', className: 'bg-[#E0F5FF] text-[#1B7DB3]' },
   { key: 'isFeatured', label: 'Featured', className: 'bg-amber-100 text-amber-700' },
   { key: 'isNew', label: 'New', className: 'bg-green-100 text-green-700' },
 ]

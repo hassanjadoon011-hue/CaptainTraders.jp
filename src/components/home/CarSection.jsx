@@ -64,7 +64,7 @@ export default function CarSection({
           <h2 className="text-lg sm:text-xl font-bold text-gray-900">{title}</h2>
           {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
         </div>
-        <Link to={to} className="text-sm text-blue-500 hover:underline font-medium">
+        <Link to={to} className="text-sm text-[#29ABE2] hover:underline font-medium">
           See More →
         </Link>
       </div>

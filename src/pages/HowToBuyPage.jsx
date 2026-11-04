@@ -116,7 +116,7 @@ export default function HowToBuyPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               to="/cars"
-              className="inline-flex items-center gap-2 bg-white font-bold text-sm px-6 sm:px-7 py-3 rounded-lg hover:bg-blue-50 transition"
+              className="inline-flex items-center gap-2 bg-white font-bold text-sm px-6 sm:px-7 py-3 rounded-lg hover:bg-[#F0FAFF] transition"
               style={{ color: BLUE }}
             >
               Browse Stock
@@ -167,7 +167,7 @@ export default function HowToBuyPage() {
                 {step.num}
               </span>
 
-              <div className="bg-white rounded-2xl border border-blue-100 p-5 sm:p-7 shadow-sm">
+              <div className="bg-white rounded-2xl border border-[#29ABE2]/20 p-5 sm:p-7 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-[#F0FAFF] flex items-center justify-center shrink-0">
                     {step.icon}
@@ -195,7 +195,7 @@ export default function HowToBuyPage() {
       <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {GOOD_TO_KNOW.map((g) => (
-            <div key={g.title} className="bg-white border border-blue-100 rounded-2xl p-5">
+            <div key={g.title} className="bg-white border border-[#29ABE2]/20 rounded-2xl p-5">
               <p className="text-sm font-bold text-[#0A1628]">{g.title}</p>
               <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{g.text}</p>
             </div>
@@ -231,7 +231,7 @@ export default function HowToBuyPage() {
             </Link>
             <Link
               to="/contact"
-              className="px-7 sm:px-8 py-3.5 border border-blue-200 text-[#0A1628] font-semibold text-sm rounded-xl hover:bg-blue-50 transition"
+              className="px-7 sm:px-8 py-3.5 border border-[#29ABE2]/20 text-[#0A1628] font-semibold text-sm rounded-xl hover:bg-[#F0FAFF] transition"
             >
               Contact Us
             </Link>

@@ -132,7 +132,7 @@ export default function PurchasingPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
             <Link
               to="/faq?v=3"
-              className="bg-white border border-[#29ABE2] text-[#1B7DB3] hover:bg-blue-50 font-semibold px-8 py-3 rounded-lg transition"
+              className="bg-white border border-[#29ABE2] text-[#1B7DB3] hover:bg-[#F0FAFF] font-semibold px-8 py-3 rounded-lg transition"
             >
               Payment FAQ
             </Link>
@@ -251,7 +251,7 @@ function BankDetailsModal({ onClose }) {
                     className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
                       copied
                         ? 'bg-green-50 border-green-200 text-green-600'
-                        : 'bg-white border-gray-200 text-[#1B7DB3] hover:bg-blue-50'
+                        : 'bg-white border-gray-200 text-[#1B7DB3] hover:bg-[#F0FAFF]'
                     }`}
                   >
                     {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -264,13 +264,13 @@ function BankDetailsModal({ onClose }) {
 
           <button
             onClick={copyAll}
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold text-[#1B7DB3] border border-[#29ABE2] hover:bg-blue-50 py-2.5 rounded-lg transition"
+            className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold text-[#1B7DB3] border border-[#29ABE2] hover:bg-[#F0FAFF] py-2.5 rounded-lg transition"
           >
             {copiedKey === 'all' ? <Check size={16} /> : <Copy size={16} />}
             {copiedKey === 'all' ? 'All details copied' : 'Copy all details'}
           </button>
 
-          <div className="bg-blue-50 rounded-xl p-4">
+          <div className="bg-[#F0FAFF] rounded-xl p-4">
             <p className="text-sm font-semibold text-gray-800">After you transfer</p>
             <p className="text-xs text-gray-600 mt-1">
               Email a copy of the payment to{' '}

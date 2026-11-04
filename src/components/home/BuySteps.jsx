@@ -16,7 +16,7 @@ export default function BuySteps() {
           <h2 className="text-lg sm:text-xl font-bold text-gray-900">How To Buy</h2>
           <p className="text-sm text-gray-400 mt-0.5">Five simple steps from our stock to your door</p>
         </div>
-        <Link to="/how-to-buy" className="text-sm text-blue-500 hover:underline font-medium">
+        <Link to="/how-to-buy" className="text-sm text-[#29ABE2] hover:underline font-medium">
           Learn more 
         </Link>
       </div>

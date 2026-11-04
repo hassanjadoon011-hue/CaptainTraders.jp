@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, ChevronsUpDown, LogOut,
+  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, LogOut,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import { getOrders } from "../../api/orderApi";
@@ -12,7 +12,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
   const { admin, can } = useAdmin();
   const [newOrders, setNewOrders] = useState(0);
   const [unread, setUnread] = useState(0);
-  const [userMenu, setUserMenu] = useState(false);
   const navigate = useNavigate();
 
   const logout = async () => {
@@ -48,15 +47,11 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
   // Close the drawer with Escape on phones
   useEffect(() => {
-    if (!isOpen && !userMenu) return;
-    const onKey = (e) => {
-      if (e.key !== "Escape") return;
-      setUserMenu(false);
-      onClose();
-    };
+    if (!isOpen) return;
+    const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, userMenu, onClose]);
+  }, [isOpen, onClose]);
 
   const sections = [
     {
@@ -167,47 +162,9 @@ export default function AdminSidebar({ isOpen, onClose }) {
           ))}
         </nav>
 
-        {/* SIGNED-IN USER */}
-        <div className="relative p-3 border-t border-white/20 shrink-0">
-          {userMenu && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setUserMenu(false)} aria-hidden="true" />
-              <div
-                role="menu"
-                aria-label="Account"
-                className="absolute left-3 right-3 bottom-full mb-2 z-20 bg-white text-gray-700 rounded-xl shadow-xl border border-gray-200/70 overflow-hidden"
-              >
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">{admin?.email}</p>
-                </div>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => { setUserMenu(false); onClose(); navigate("/admin/account"); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-gray-50 transition"
-                >
-                  <UserCog size={16} className="text-gray-400" /> My Account
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={logout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition"
-                >
-                  <LogOut size={16} /> Log out
-                </button>
-              </div>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setUserMenu((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={userMenu}
-            aria-label="Account options"
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left transition ${userMenu ? "bg-white/20" : "hover:bg-white/15"}`}
-          >
+        {/* SIGNED-IN USER (static, no dropdown) */}
+        <div className="p-3 border-t border-white/20 shrink-0">
+          <div className="flex items-center gap-3 px-2 py-1.5">
             <span className="w-8 h-8 rounded-full bg-white text-[#1B7DB3] flex items-center justify-center text-sm font-bold shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </span>
@@ -215,8 +172,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
               <span className="block text-sm font-semibold truncate">{displayName}</span>
               <span className="block text-[11px] text-white/80">{ROLE_LABELS[admin?.role] || "Admin"}</span>
             </span>
-            <ChevronsUpDown size={16} className="text-white/80 shrink-0" />
-          </button>
+            <button
+              type="button"
+              onClick={logout}
+              title="Log out"
+              aria-label="Log out"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white/90 hover:bg-white/15 hover:text-white transition shrink-0"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </aside>
     </>
