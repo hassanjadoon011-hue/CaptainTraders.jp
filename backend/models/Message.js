@@ -8,6 +8,7 @@ const messageSchema = new mongoose.Schema(
     country: { type: String, trim: true },
     message: { type: String, trim: true },
     isRead:  { type: Boolean, default: false },
+    customerRef: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", default: null },
   },
   { timestamps: true }
 );

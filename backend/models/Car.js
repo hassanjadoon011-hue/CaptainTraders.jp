@@ -55,6 +55,27 @@ const carSchema = new mongoose.Schema(
       default: "available",
     },
     soldAt:        { type: Date, default: null },
+
+    // Internal buying data. select:false = never returned by normal queries
+    // (public API); admin code must ask for it with .select("+purchase").
+    purchase: {
+      type: new mongoose.Schema(
+        {
+          price:      { type: Number, min: 0 },          // what we paid
+          currency:   { type: String, enum: ["JPY", "USD"], default: "JPY" },
+          priceUSD:   { type: Number, min: 0 },          // USD value on purchase day
+          date:       { type: Date },
+          source:     { type: String, enum: ["auction", "dealer", "private", "other"] },
+          auctionHouse: { type: String, trim: true },    // e.g. USS Tokyo
+          lotNo:      { type: String, trim: true },
+          supplier:   { type: String, trim: true },
+          note:       { type: String, trim: true },
+        },
+        { _id: false }
+      ),
+      default: undefined,
+      select: false,
+    },
     views:         { type: Number, default: 0 },
     images:        { type: [String], default: [] },
   },

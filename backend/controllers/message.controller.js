@@ -1,4 +1,5 @@
 const Message = require("../models/Message");
+const { upsertFromContact } = require("../services/customer.service");
 
 // Old messages have no isRead field, so "unread" means isRead is not true
 const UNREAD_FILTER = { isRead: { $ne: true } };
@@ -49,7 +50,14 @@ const createMessage = async (req, res, next) => {
         .json({ success: false, message: "Name and message are required" });
     }
 
-    const created = await Message.create({ name, email, message, subject, country });
+    let customerRef = null;
+    try {
+      customerRef = (await upsertFromContact({ name, email, country }, "message"))?._id || null;
+    } catch (err) {
+      console.error("CRM link failed:", err.message);
+    }
+
+    const created = await Message.create({ name, email, message, subject, country, customerRef });
     res.status(201).json({ success: true, data: created });
   } catch (err) {
     next(err);

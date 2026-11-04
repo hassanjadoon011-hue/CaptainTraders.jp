@@ -3,6 +3,7 @@ const Car = require("../models/Car");
 const Order = require("../models/Order");
 const Counter = require("../models/Counter");
 const { calculateQuote } = require("../services/pricing.service");
+const { upsertFromContact, markActive } = require("../services/customer.service");
 
 const STATUSES = ["new", "invoiced", "paid", "shipped", "completed", "cancelled"];
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -92,6 +93,14 @@ const create = async (req, res, next) => {
       };
     }
 
+    // Link to the CRM record. A CRM problem must never lose the customer's request.
+    let customerRef = null;
+    try {
+      customerRef = (await upsertFromContact(customer, type))?._id || null;
+    } catch (err) {
+      console.error("CRM link failed:", err.message);
+    }
+
     const orderNo = await nextOrderNo();
     const order = await Order.create({
       orderNo,
@@ -105,6 +114,7 @@ const create = async (req, res, next) => {
         fobPrice: car.price,
       },
       customer,
+      customerRef,
       destination,
       quote,
       message: longText(b.message),
@@ -196,6 +206,7 @@ const update = async (req, res, next) => {
         { $set: { status: "sold", soldAt: new Date() } }
       );
       carMarkedSold = r.modifiedCount > 0;
+      await markActive(order.customerRef);
     }
 
     res.json({ success: true, data: order, carMarkedSold });
