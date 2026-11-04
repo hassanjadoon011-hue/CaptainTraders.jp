@@ -1,3 +1,5 @@
+import { statusMeta } from "../../constants/stockOptions";
+
 // Shared admin UI building blocks — one look for every admin page.
 // Brand: #29ABE2 (primary), #1B7DB3 (primary dark), #0A1628 (navy text), #E0F5FF (tint)
 
@@ -166,4 +168,71 @@ export function StatusMessage({ status }) {
       {status.text}
     </p>
   );
+}
+
+// Money: "$1,234" or "$1,234.50" (cents only when needed); JPY without decimals
+export const money = (n, currency = "USD") => {
+  if (n === null || n === undefined || n === "" || !Number.isFinite(Number(n))) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    // whole amounts without cents, otherwise always 2 decimals ($217.50)
+    minimumFractionDigits: currency === "JPY" || Number.isInteger(Math.round(Number(n) * 100) / 100) ? 0 : 2,
+    maximumFractionDigits: currency === "JPY" ? 0 : 2,
+  }).format(Number(n));
+};
+
+export const dateInput = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
+
+// Labelled form field
+export function Field({ label, hint, className = "", children }) {
+  return (
+    <label className={cx("block min-w-0", className)}>
+      <span className={labelClass}>{label}</span>
+      {children}
+      {hint && <span className="block text-xs text-gray-400 mt-1">{hint}</span>}
+    </label>
+  );
+}
+
+// Right-side panel for forms and details (full screen on phones)
+export function Drawer({ open, title, subtitle, onClose, footer, children, width = "max-w-lg" }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[65] flex justify-end" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-[#0A1628]/50" onClick={onClose} />
+      <aside className={cx("relative w-full bg-white h-full flex flex-col shadow-2xl", width)}>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-3 shrink-0">
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-[#0A1628] truncate">{title}</h2>
+            {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        {footer && <div className="px-5 py-3 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 shrink-0">{footer}</div>}
+      </aside>
+    </div>
+  );
+}
+
+// Label / value pair for summaries
+export function Stat({ label, value, tone }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className={cx("text-base font-bold tabular-nums truncate", tone === "red" ? "text-red-600" : tone === "green" ? "text-green-700" : "text-[#0A1628]")}>{value}</p>
+    </div>
+  );
+}
+
+export const PAYMENT_TONES = { paid: "green", partial: "amber", unpaid: "red", none: "gray" };
+export const PAYMENT_LABELS = { paid: "Paid", partial: "Partly paid", unpaid: "Unpaid", none: "No amount" };
+
+// Order status pill (same colours everywhere)
+export function OrderStatusBadge({ status }) {
+  const m = statusMeta(status);
+  return <span className={`inline-flex text-xs px-2 py-0.5 rounded-md font-semibold whitespace-nowrap ${m.className}`}>{m.label}</span>;
 }

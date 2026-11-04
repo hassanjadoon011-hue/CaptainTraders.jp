@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Star, Tag, Pencil, Trash2, ImageOff, Plus, CarFront as CarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Star, Tag, Pencil, Trash2, ImageOff, Plus, CarFront as CarIcon, ChevronLeft, ChevronRight, Calculator } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import { getFilterOptions } from "../../api/carApi";
 import { useAdmin } from "../../context/AdminAuthContext";
@@ -140,7 +140,8 @@ export default function Listingstable({ compact = false }) {
   const hasFilters = search || tab || make;
   const canEdit = can("cars.edit");
   const canDelete = can("cars.delete");
-  const showActions = canEdit || canDelete;
+  const canCosts = can("finance.view");
+  const showActions = canEdit || canDelete || canCosts;
 
   // Icon actions shared by table rows and phone cards
   const iconActions = (car) => {
@@ -171,6 +172,11 @@ export default function Listingstable({ compact = false }) {
               <Pencil size={15} />
             </IconButton>
           </>
+        )}
+        {canCosts && (
+          <IconButton label="Costs & profit" onClick={() => navigate(`/admin/cars/${car._id}/costs`)}>
+            <Calculator size={15} />
+          </IconButton>
         )}
         {canDelete && (
           <IconButton label="Delete" tone="danger" onClick={() => handleDelete(car)}>

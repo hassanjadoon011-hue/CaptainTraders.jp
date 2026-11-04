@@ -188,6 +188,33 @@ const update = async (req, res, next) => {
     }
     if ("adminNote" in b) set.adminNote = longText(b.adminNote);
     if ("isRead" in b) set.isRead = isTrue(b.isRead);
+    if (b.invoice && typeof b.invoice === "object") {
+      const inv = b.invoice;
+      if ("number" in inv) set["invoice.number"] = text(inv.number, 40) || undefined;
+      if ("amount" in inv) {
+        const n = inv.amount === "" || inv.amount === null ? null : Number(inv.amount);
+        if (n !== null && !(Number.isFinite(n) && n >= 0 && n <= 1e9)) return fail(res, "Invalid invoice amount.");
+        set["invoice.amount"] = n;
+      }
+      if ("terms" in inv) {
+        if (!["FOB", "CFR", "CIF"].includes(inv.terms)) return fail(res, "Invalid invoice terms.");
+        set["invoice.terms"] = inv.terms;
+      }
+      for (const k of ["issuedAt", "dueAt"]) {
+        if (k in inv) {
+          const d = inv[k] ? new Date(inv[k]) : null;
+          if (d && isNaN(d)) return fail(res, `Invalid invoice ${k}.`);
+          set[`invoice.${k}`] = d;
+        }
+      }
+      if (set["invoice.number"] && !set["invoice.issuedAt"] && !("issuedAt" in inv)) set["invoice.issuedAt"] = new Date();
+      // Issuing an invoice moves a new request to "invoiced" (unless a status was sent too)
+      if (set["invoice.number"] && !("status" in b)) {
+        const current = await Order.findById(req.params.id).select("status").lean();
+        if (current?.status === "new") set.status = "invoiced";
+      }
+      for (const k of Object.keys(set)) if (set[k] === undefined) delete set[k];
+    }
 
     if (Object.keys(set).length === 0) return fail(res, "Nothing to update.");
 

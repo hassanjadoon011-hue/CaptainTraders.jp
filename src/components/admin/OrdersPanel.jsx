@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Search, X, Trash2, ExternalLink, Mail, Phone, MapPin, Package, Inbox,
+  Search, X, Trash2, ExternalLink, Mail, Phone, MapPin, Package, Inbox, Contact, Wallet, Anchor,
 } from "lucide-react";
 import { getOrders, updateOrder, deleteOrder } from "../../api/orderApi";
 import { useAdmin } from "../../context/AdminAuthContext";
 import { ORDER_STATUSES, statusMeta, usd, formatDate, orderRef } from "../../constants/stockOptions";
-import { Button, Card, EmptyState, PageHeader, Tabs, inputClass, cx } from "./ui";
+import { Button, Card, EmptyState, PageHeader, Tabs, btnClass, inputClass, cx } from "./ui";
 
 const LIMIT = 10;
 
@@ -85,6 +85,21 @@ function OrderDrawer({ order, onClose, onPatch, onDelete }) {
               Setting Paid, Shipped or Completed marks the car as sold automatically.
             </p>
           </div>
+
+          {/* RELATED RECORDS */}
+          {(order.customerRef && can("customers.view")) || can("finance.view") || can("shipments.view") ? (
+            <div className="flex flex-wrap gap-2">
+              {order.customerRef && can("customers.view") && (
+                <Link to={`/admin/customers/${order.customerRef}`} className={btnClass("secondary", "sm")}><Contact size={14} /> Customer</Link>
+              )}
+              {can("finance.view") && (
+                <Link to={`/admin/payments?order=${order._id}`} className={btnClass("secondary", "sm")}><Wallet size={14} /> Invoice & payments</Link>
+              )}
+              {can("shipments.view") && order.type === "order" && (
+                <Link to={`/admin/shipments?order=${order._id}`} className={btnClass("secondary", "sm")}><Anchor size={14} /> Shipment</Link>
+              )}
+            </div>
+          ) : null}
 
           {/* CAR */}
           <div>

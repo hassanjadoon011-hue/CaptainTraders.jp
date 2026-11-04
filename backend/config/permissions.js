@@ -1,7 +1,10 @@
 // Single source of truth for admin roles and what each role may do.
 // The frontend receives the resolved permission list from GET /api/admin/me.
 
-const VIEW = ["dashboard.view", "cars.view", "orders.view", "messages.view", "shipping.view"];
+const VIEW = [
+  "dashboard.view", "cars.view", "orders.view", "messages.view", "shipping.view",
+  "customers.view", "shipments.view",
+];
 
 const ALL = [
   ...VIEW,
@@ -9,6 +12,10 @@ const ALL = [
   "orders.edit", "orders.delete",
   "messages.edit", "messages.delete",
   "shipping.edit",
+  "customers.edit", "customers.delete",
+  "shipments.edit",
+  // Money: purchase costs, expenses, profit, payments and balances
+  "finance.view", "finance.edit",
   "users.manage",
 ];
 
@@ -25,12 +32,12 @@ const ROLES = {
   },
   sales: {
     label: "Sales",
-    description: "Add/edit cars, handle orders and messages. No deleting, no shipping rates.",
-    permissions: [...VIEW, "cars.create", "cars.edit", "orders.edit", "messages.edit"],
+    description: "Add/edit cars, handle orders, customers, shipments and messages. No deleting, no finance, no shipping rates.",
+    permissions: [...VIEW, "cars.create", "cars.edit", "orders.edit", "messages.edit", "customers.edit", "shipments.edit"],
   },
   viewer: {
     label: "Viewer",
-    description: "Read-only access.",
+    description: "Read-only access (no finance).",
     permissions: VIEW,
   },
 };

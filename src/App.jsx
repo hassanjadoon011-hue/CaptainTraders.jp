@@ -34,6 +34,11 @@ import OrdersPanel from "./components/admin/OrdersPanel";
 import ShippingRatesPanel from "./components/admin/ShippingRatesPanel";
 import AdminUsersPanel from "./components/admin/AdminUsersPanel";
 import AccountPanel from "./components/admin/AccountPanel";
+import CustomersPanel from "./components/admin/CustomersPanel";
+import CustomerDetail from "./components/admin/CustomerDetail";
+import CarCostsPanel from "./components/admin/CarCostsPanel";
+import PaymentsPanel from "./components/admin/PaymentsPanel";
+import ShipmentsPanel from "./components/admin/ShipmentsPanel";
 import { PageHeader } from "./components/admin/ui";
 import { useAdmin } from "./context/AdminAuthContext";
 
@@ -105,6 +110,11 @@ function AppContent() {
             <Route path="messages" element={<MessagesPanel />} />
             <Route path="users" element={<RequirePermission perm="users.manage"><AdminUsersPanel /></RequirePermission>} />
             <Route path="account" element={<AccountPanel />} />
+            <Route path="customers" element={<RequirePermission perm="customers.view"><CustomersPanel /></RequirePermission>} />
+            <Route path="customers/:id" element={<RequirePermission perm="customers.view"><CustomerDetail /></RequirePermission>} />
+            <Route path="cars/:id/costs" element={<RequirePermission perm="finance.view"><CarCostsPanel /></RequirePermission>} />
+            <Route path="payments" element={<RequirePermission perm="finance.view"><PaymentsPanel /></RequirePermission>} />
+            <Route path="shipments" element={<RequirePermission perm="shipments.view"><ShipmentsPanel /></RequirePermission>} />
           </Route>
         </Routes>
       </main>

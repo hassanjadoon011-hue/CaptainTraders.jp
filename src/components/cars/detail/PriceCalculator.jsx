@@ -5,7 +5,14 @@ import useShippingSettings from '../../../hooks/useShippingSettings'
 import { getQuote } from '../../../api/shippingApi'
 
 const OTHER = '__other'
-const usd = (n) => `$${Math.round(n).toLocaleString('en-US')}`
+// "$14,500" or "$217.50": cents only when there are any, so every line adds up to the total
+const usd = (n) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: Number.isInteger(Number(n) || 0) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(Number(n) || 0)
 
 // text-base on mobile stops iOS from zooming into the field; 48px height is a comfortable touch target
 const fieldClass =
@@ -24,11 +31,12 @@ function Field({ id, label, children }) {
   )
 }
 
-function YesNo({ icon: Icon, label, value, onChange }) {
+function YesNo({ icon: Icon, label, hint, value, onChange }) {
   return (
     <div className="min-w-0">
       <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 mb-1.5">
         <Icon size={13} className="text-[#29ABE2]" /> {label}
+        {hint && <span className="ml-auto font-normal text-gray-400">{hint}</span>}
       </p>
       <div
         role="radiogroup"
@@ -212,11 +220,11 @@ export default function PriceCalculator({
             </Field>
 
             {insuranceRate > 0 && (
-              <YesNo icon={ShieldCheck} label="Insurance" value={insurance}
+              <YesNo icon={ShieldCheck} label="Marine insurance" hint={`${insuranceRate}% of FOB`} value={insurance}
                 onChange={(v) => { setInsurance(v); reset() }} />
             )}
             {inspectionFee > 0 && (
-              <YesNo icon={ClipboardCheck} label="Inspection" value={inspection}
+              <YesNo icon={ClipboardCheck} label="Pre-export inspection" hint={usd(inspectionFee)} value={inspection}
                 onChange={(v) => { setInspection(v); reset() }} />
             )}
           </div>
@@ -249,41 +257,44 @@ export default function PriceCalculator({
 
           <div aria-live="polite">
             {result && (
-              <div className="mt-5 rounded-xl bg-[#F0FAFF] border border-[#29ABE2]/20 p-4 sm:p-5">
-                <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-gray-600">Vehicle price</dt>
-                    <dd className="font-semibold text-gray-900">{usd(vehiclePrice)}</dd>
+              <div className="mt-5 rounded-xl bg-[#F0FAFF] border border-[#29ABE2]/20 overflow-hidden">
+                <p className="px-4 sm:px-5 pt-4 text-xs font-semibold uppercase tracking-wider text-[#1B7DB3]">
+                  Price breakdown · {result.portLabel}
+                </p>
+                <dl className="px-4 sm:px-5 py-3 text-sm divide-y divide-[#29ABE2]/10">
+                  <div className="flex justify-between gap-4 py-2">
+                    <dt className="text-gray-600">Vehicle price (FOB)</dt>
+                    <dd className="font-semibold text-gray-900 tabular-nums">{usd(vehiclePrice)}</dd>
                   </div>
-                  <div className="flex justify-between gap-4">
+                  <div className="flex justify-between gap-4 py-2">
                     <dt className="text-gray-600 min-w-0 break-words">
-                      Shipping to {result.portLabel}
-                      {result.freightMethod === 'm3' && (
-                        <span className="block text-[11px] text-gray-400">
-                          {result.m3} M³ × {usd(result.ratePerM3)}
-                        </span>
-                      )}
+                      Ocean freight
+                      <span className="block text-[11px] text-gray-400">
+                        {result.freightMethod === 'm3' ? `${result.m3} M³ × ${usd(result.ratePerM3)} per M³` : 'Flat rate to this destination'}
+                      </span>
                     </dt>
-                    <dd className="font-semibold text-gray-900 shrink-0">{usd(result.freight)}</dd>
+                    <dd className="font-semibold text-gray-900 tabular-nums shrink-0">{usd(result.freight)}</dd>
                   </div>
                   {result.insurance > 0 && (
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-gray-600">Insurance</dt>
-                      <dd className="font-semibold text-gray-900">{usd(result.insurance)}</dd>
+                    <div className="flex justify-between gap-4 py-2">
+                      <dt className="text-gray-600">Marine insurance <span className="text-[11px] text-gray-400">({insuranceRate}% of FOB)</span></dt>
+                      <dd className="font-semibold text-gray-900 tabular-nums">{usd(result.insurance)}</dd>
                     </div>
                   )}
                   {result.inspection > 0 && (
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-gray-600">Inspection</dt>
-                      <dd className="font-semibold text-gray-900">{usd(result.inspection)}</dd>
+                    <div className="flex justify-between gap-4 py-2">
+                      <dt className="text-gray-600">Pre-export inspection</dt>
+                      <dd className="font-semibold text-gray-900 tabular-nums">{usd(result.inspection)}</dd>
                     </div>
                   )}
                 </dl>
 
-                <div className="mt-4 pt-4 border-t border-[#29ABE2]/20 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div className="px-4 sm:px-5 py-4 bg-white/70 border-t border-[#29ABE2]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold text-gray-500">Total price</p>
-                    <p className="text-2xl sm:text-3xl font-extrabold text-[#1B7DB3] leading-tight">
+                    <p className="text-xs font-semibold text-gray-500">
+                      Estimated total {result.insurance > 0 ? '(CIF)' : '(C&F)'}
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-[#1B7DB3] leading-tight tabular-nums">
                       {usd(result.total)}
                     </p>
                   </div>

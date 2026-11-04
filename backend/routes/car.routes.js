@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const carController = require("../controllers/car.controller");
+const costs = require("../controllers/expense.controller");
 const { protect, authorize } = require("../middleware/auth");
 const mongoose = require("mongoose");
 
@@ -19,5 +20,9 @@ router.get("/:id", validateId, carController.getCarById);
 router.post("/", protect, authorize("cars.create"), carController.createCar);
 router.put("/:id", protect, authorize("cars.edit"), validateId, carController.updateCar);
 router.delete("/:id", protect, authorize("cars.delete"), validateId, carController.deleteCar);
+
+// Internal costs (finance roles only)
+router.get("/:id/costs", protect, authorize("finance.view"), validateId, costs.getCarCosts);
+router.put("/:id/purchase", protect, authorize("finance.edit"), validateId, costs.savePurchase);
 
 module.exports = router;

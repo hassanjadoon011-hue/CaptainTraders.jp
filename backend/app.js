@@ -15,6 +15,10 @@ const statsRoutes = require("./routes/stats.routes");
 const orderRoutes = require("./routes/order.routes");
 const shippingRoutes = require("./routes/shipping.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const customerRoutes = require("./routes/customer.routes");
+const expenseRoutes = require("./routes/expense.routes");
+const paymentRoutes = require("./routes/payment.routes");
+const shipmentRoutes = require("./routes/shipment.routes");
 
 const app = express();
 
@@ -82,6 +86,10 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/customers", customerRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/shipments", shipmentRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

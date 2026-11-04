@@ -1,27 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, LogOut,
+  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import { getOrders } from "../../api/orderApi";
-import { useAdmin, ROLE_LABELS } from "../../context/AdminAuthContext";
+import { useAdmin } from "../../context/AdminAuthContext";
 
 export default function AdminSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
-  const { admin, can } = useAdmin();
+  const { can } = useAdmin();
   const [newOrders, setNewOrders] = useState(0);
   const [unread, setUnread] = useState(0);
-  const navigate = useNavigate();
-
-  const logout = async () => {
-    try {
-      await axiosClient.post("/admin/logout");
-    } catch {
-      /* ignore: go to login anyway */
-    }
-    navigate("/login");
-  };
 
   // Orders nobody has handled yet + unread messages
   const loadCounts = useCallback(async () => {
@@ -62,13 +52,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
       title: "Sales",
       items: [
         { to: "/admin/orders", label: "Orders & Inquiries", icon: Inbox, active: pathname.startsWith("/admin/orders"), badge: newOrders },
+        { to: "/admin/customers", label: "Customers", icon: Contact, active: pathname.startsWith("/admin/customers"), perm: "customers.view" },
+        { to: "/admin/payments", label: "Payments", icon: Wallet, active: pathname.startsWith("/admin/payments"), perm: "finance.view" },
+        { to: "/admin/shipments", label: "Shipments", icon: Anchor, active: pathname.startsWith("/admin/shipments"), perm: "shipments.view" },
         { to: "/admin/messages", label: "Messages", icon: MessageSquare, active: pathname.startsWith("/admin/messages"), badge: unread },
       ],
     },
     {
       title: "Inventory",
       items: [
-        { to: "/admin/cars", label: "Cars", icon: Car, active: pathname === "/admin/cars" || pathname.startsWith("/admin/cars/edit") },
+        { to: "/admin/cars", label: "Cars", icon: Car, active: pathname === "/admin/cars" || pathname.startsWith("/admin/cars/edit") || pathname.endsWith("/costs") },
         { to: "/admin/cars/new", label: "Add Car", icon: PlusCircle, active: pathname === "/admin/cars/new", perm: "cars.create" },
         { to: "/admin/shipping", label: "Shipping & Rates", icon: Ship, active: pathname.startsWith("/admin/shipping") },
       ],
@@ -91,7 +84,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
         : "text-white/90 font-medium hover:bg-white/15 hover:text-white"
     }`;
 
-  const displayName = admin?.name || admin?.email || "Admin";
 
   return (
     <>
@@ -162,27 +154,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
           ))}
         </nav>
 
-        {/* SIGNED-IN USER (static, no dropdown) */}
-        <div className="p-3 border-t border-white/20 shrink-0">
-          <div className="flex items-center gap-3 px-2 py-1.5">
-            <span className="w-8 h-8 rounded-full bg-white text-[#1B7DB3] flex items-center justify-center text-sm font-bold shrink-0">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block text-sm font-semibold truncate">{displayName}</span>
-              <span className="block text-[11px] text-white/80">{ROLE_LABELS[admin?.role] || "Admin"}</span>
-            </span>
-            <button
-              type="button"
-              onClick={logout}
-              title="Log out"
-              aria-label="Log out"
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white/90 hover:bg-white/15 hover:text-white transition shrink-0"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
       </aside>
     </>
   );
