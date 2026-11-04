@@ -1,301 +1,398 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Star, Tag, Pencil, Trash2, ImageOff, Plus, CarFront as CarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
-
-const LIMIT = 10;
+import { getFilterOptions } from "../../api/carApi";
+import { useAdmin } from "../../context/AdminAuthContext";
+import { usd } from "../../constants/stockOptions";
+import { Badge, Button, Card, CardHeader, EmptyState, IconButton, PageHeader, Tabs, btnClass, inputClass, cx } from "./ui";
 
 const notifyStats = () => window.dispatchEvent(new Event("cars-updated"));
 
-const conditionClass = (condition) =>
-  condition === "New"
-    ? "bg-green-100 text-green-600"
-    : condition === "Used"
-    ? "bg-yellow-100 text-yellow-600"
-    : "bg-blue-100 text-blue-600";
+const TABS = [
+  { value: "", label: "All" },
+  { value: "available", label: "Available" },
+  { value: "sold", label: "Sold" },
+];
 
-const statusClass = (isSold) =>
-  isSold ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600";
+const SORTS = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "price_desc", label: "Price: high to low" },
+  { value: "price_asc", label: "Price: low to high" },
+  { value: "year_desc", label: "Year: newest" },
+  { value: "mileage_asc", label: "Mileage: lowest" },
+  { value: "popular", label: "Most viewed" },
+];
 
-export default function Listingstable() {
-  const [cars,       setCars]       = useState([]);
-  const [total,      setTotal]      = useState(0);
+const km = (n) => (n != null && n !== "" ? `${Number(n).toLocaleString()} km` : "—");
+
+function Thumb({ src, size = "md" }) {
+  const box = size === "lg" ? "w-20 h-14" : "w-16 h-11";
+  return src ? (
+    <img src={src} alt="" loading="lazy" className={`${box} rounded-lg object-cover bg-gray-100 ring-1 ring-gray-200/70 shrink-0`} />
+  ) : (
+    <div className={`${box} rounded-lg bg-gray-100 ring-1 ring-gray-200/70 flex items-center justify-center text-gray-300 shrink-0`}>
+      <ImageOff size={16} />
+    </div>
+  );
+}
+
+function StatusBadge({ sold }) {
+  return <Badge tone={sold ? "red" : "green"}>{sold ? "Sold" : "Available"}</Badge>;
+}
+
+function Flags({ car }) {
+  if (!car.isRecommended && !car.isBestDeal) return null;
+  return (
+    <span className="inline-flex gap-1">
+      {car.isRecommended && <Badge tone="blue"><Star size={11} /> Recommended</Badge>}
+      {car.isBestDeal && <Badge tone="amber"><Tag size={11} /> Best deal</Badge>}
+    </span>
+  );
+}
+
+const title = (car) => [car.year, car.make, car.model].filter(Boolean).join(" ");
+
+export default function Listingstable({ compact = false }) {
+  const { can } = useAdmin();
+  const limit = compact ? 6 : 10;
+
+  const [cars, setCars] = useState([]);
+  const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [page,       setPage]       = useState(1);
-  const [loading,    setLoading]    = useState(true);
-  const [search,     setSearch]     = useState("");
-  const [busyId,     setBusyId]     = useState(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("");
+  const [make, setMake] = useState("");
+  const [sort, setSort] = useState("newest");
+  const [makes, setMakes] = useState([]);
+  const [busyId, setBusyId] = useState(null);
   const navigate = useNavigate();
 
-  const fetchCars = useCallback(async (currentPage, searchText) => {
+  const fetchCars = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { page: currentPage, limit: LIMIT };
-      if (searchText.trim()) params.search = searchText.trim();
+      const params = { page, limit, sort };
+      if (search.trim()) params.search = search.trim();
+      if (tab) params.status = tab;
+      if (make) params.make = make;
 
-      const res        = await axiosClient.get("/cars", { params });
-      const data       = res?.data?.data || [];
-      const pagination = res?.data?.pagination || {};
-
-      setCars(Array.isArray(data) ? data : []);
-      setTotal(pagination.totalCars ?? data.length);
-      setTotalPages(pagination.totalPages ?? 1);
-    } catch (err) {
-      console.log("FETCH ERROR:", err);
+      const res = await axiosClient.get("/cars", { params });
+      setCars(res?.data?.data || []);
+      setTotal(res?.data?.pagination?.totalCars ?? 0);
+      setTotalPages(res?.data?.pagination?.totalPages ?? 1);
+    } catch {
       setCars([]);
       setTotal(0);
       setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, limit, search, tab, make, sort]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => fetchCars(page, search), search ? 400 : 0);
-    return () => clearTimeout(timeout);
-  }, [page, search, fetchCars]);
+    const t = setTimeout(fetchCars, search ? 400 : 0);
+    return () => clearTimeout(t);
+  }, [fetchCars, search]);
 
-  const handleSearch = (value) => {
-    setSearch(value);
-    setPage(1);
-  };
+  // Refresh when a car is added or edited somewhere else
+  useEffect(() => {
+    window.addEventListener("cars-updated", fetchCars);
+    return () => window.removeEventListener("cars-updated", fetchCars);
+  }, [fetchCars]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this car? This cannot be undone.")) return;
-    try {
-      await axiosClient.delete(`/cars/${id}`);
+  // Makes for the filter dropdown
+  useEffect(() => {
+    if (compact) return;
+    getFilterOptions()
+      .then((d) => setMakes(d?.makes || []))
+      .catch(() => setMakes([]));
+  }, [compact]);
 
-      if (cars.length === 1 && page > 1) {
-        setPage(page - 1);
-      } else {
-        fetchCars(page, search);
-      }
-      notifyStats();
-    } catch (err) {
-      console.log("DELETE ERROR:", err);
-      alert("Could not delete the car. Please try again.");
-    }
-  };
-
-  const handleToggleStatus = async (car) => {
-    const nextStatus = car.status === "sold" ? "available" : "sold";
+  const update = async (car, data) => {
     setBusyId(car._id);
     try {
-      await axiosClient.put(`/cars/${car._id}`, { status: nextStatus });
-      await fetchCars(page, search);
+      await axiosClient.put(`/cars/${car._id}`, data);
+      await fetchCars();
       notifyStats();
-    } catch (err) {
-      console.log("STATUS ERROR:", err);
-      alert("Could not update the car status. Please try again.");
+    } catch {
+      alert("Could not update the car. Please try again.");
     } finally {
       setBusyId(null);
     }
   };
 
-  const getPageNumbers = () => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages = new Set(
-      [1, totalPages, page, page - 1, page + 1].filter((p) => p >= 1 && p <= totalPages)
-    );
-    const sorted = [...pages].sort((a, b) => a - b);
-    const result = [];
-    sorted.forEach((p, i) => {
-      if (i > 0 && p - sorted[i - 1] > 1) result.push("...");
-      result.push(p);
-    });
-    return result;
+  const handleDelete = async (car) => {
+    if (!window.confirm(`Delete ${car.make} ${car.model}? This cannot be undone.`)) return;
+    try {
+      await axiosClient.delete(`/cars/${car._id}`);
+      if (cars.length === 1 && page > 1) setPage(page - 1);
+      else fetchCars();
+      notifyStats();
+    } catch {
+      alert("Could not delete the car. Please try again.");
+    }
   };
 
-  const renderActions = (car, nowrap = false) => {
-    const isSold = car.status === "sold";
+  const resetPage = (fn) => (v) => { fn(v); setPage(1); };
+  const hasFilters = search || tab || make;
+  const canEdit = can("cars.edit");
+  const canDelete = can("cars.delete");
+  const showActions = canEdit || canDelete;
+
+  // Icon actions shared by table rows and phone cards
+  const iconActions = (car) => {
+    const busy = busyId === car._id;
     return (
-      <div className={`flex gap-2 ${nowrap ? "whitespace-nowrap" : "flex-wrap"}`}>
-        <button
-          onClick={() => navigate(`/admin/cars/edit/${car._id}`)}
-          className="bg-[#29ABE2] hover:bg-[#1a9fd4] text-white text-xs px-3 py-1.5 rounded-lg transition"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => handleToggleStatus(car)}
-          disabled={busyId === car._id}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
-        >
-          {busyId === car._id ? "..." : isSold ? "Mark available" : "Mark sold"}
-        </button>
-        <button
-          onClick={() => handleDelete(car._id)}
-          className="bg-red-50 hover:bg-red-100 text-red-500 text-xs px-3 py-1.5 rounded-lg transition"
-        >
-          Delete
-        </button>
-      </div>
+      <>
+        {canEdit && (
+          <>
+            <IconButton
+              label={car.isRecommended ? "Remove from Recommended" : "Mark as Recommended"}
+              aria-pressed={!!car.isRecommended}
+              active={car.isRecommended}
+              disabled={busy}
+              onClick={() => update(car, { isRecommended: !car.isRecommended })}
+            >
+              <Star size={15} className={car.isRecommended ? "fill-current" : ""} />
+            </IconButton>
+            <IconButton
+              label={car.isBestDeal ? "Remove from Best Deals" : "Mark as Best Deal"}
+              aria-pressed={!!car.isBestDeal}
+              active={car.isBestDeal}
+              disabled={busy}
+              onClick={() => update(car, { isBestDeal: !car.isBestDeal })}
+            >
+              <Tag size={15} />
+            </IconButton>
+            <IconButton label="Edit" onClick={() => navigate(`/admin/cars/edit/${car._id}`)}>
+              <Pencil size={15} />
+            </IconButton>
+          </>
+        )}
+        {canDelete && (
+          <IconButton label="Delete" tone="danger" onClick={() => handleDelete(car)}>
+            <Trash2 size={15} />
+          </IconButton>
+        )}
+      </>
     );
   };
 
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+  const soldToggle = (car, className = "") => {
+    if (!canEdit) return null;
+    const sold = car.status === "sold";
+    const busy = busyId === car._id;
+    return (
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={busy}
+        className={cx("min-w-[104px]", className)}
+        onClick={() => update(car, { status: sold ? "available" : "sold" })}
+      >
+        {busy ? "Saving…" : sold ? "Mark available" : "Mark sold"}
+      </Button>
+    );
+  };
 
-      {/* ── Header ── */}
-      <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base font-bold text-gray-800">Cars Listing</h2>
-          <span className="text-xs bg-[#29ABE2]/10 text-[#29ABE2] font-semibold px-2 py-1 rounded-full">
-            {total} total
-          </span>
-        </div>
-        <input
-          value={search}
-          onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Filter by make or model..."
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#29ABE2] w-full sm:w-56"
+  const empty = (
+    <EmptyState
+      icon={CarIcon}
+      title={hasFilters ? "No cars match your filters" : "No cars yet"}
+      text={hasFilters ? "Try a different search or filter." : "Add your first vehicle to start selling."}
+      action={
+        !hasFilters && can("cars.create") && !compact ? (
+          <Link to="/admin/cars/new" className={btnClass("primary")}><Plus size={16} /> Add car</Link>
+        ) : null
+      }
+    />
+  );
+
+  const colCount = compact ? 4 + (showActions ? 1 : 0) : 6 + (showActions ? 1 : 0);
+
+  const list = (
+    <Card className="overflow-hidden">
+      {compact ? (
+        <CardHeader
+          title="Latest cars"
+          subtitle={`${total} vehicles in total`}
+          actions={<Link to="/admin/cars" className="text-xs font-semibold text-[#1B7DB3] hover:underline">Manage all cars →</Link>}
         />
-      </div>
+      ) : (
+        <>
+          {/* TOOLBAR */}
+          <div className="px-4 sm:px-5 border-b border-gray-100 flex items-center justify-between gap-3">
+            <Tabs tabs={TABS} value={tab} onChange={resetPage(setTab)} />
+            <span className="text-xs text-gray-500 whitespace-nowrap">{loading ? "Loading…" : `${total} result${total === 1 ? "" : "s"}`}</span>
+          </div>
+          <div className="p-4 sm:px-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_200px_200px] gap-3 border-b border-gray-100 bg-gray-50/50">
+            <div className="relative sm:col-span-2 lg:col-span-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="Search make, model, chassis or stock no."
+                aria-label="Search cars"
+                className={cx(inputClass, "pl-9")}
+              />
+            </div>
+            <select aria-label="Filter by make" value={make} onChange={(e) => resetPage(setMake)(e.target.value)} className={inputClass}>
+              <option value="">All makes</option>
+              {makes.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <select aria-label="Sort cars" value={sort} onChange={(e) => resetPage(setSort)(e.target.value)} className={inputClass}>
+              {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+        </>
+      )}
 
-      {/* ── CARDS (phones and tablets) ── */}
-      <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 sm:p-4">
+      {/* CARDS (phones and tablets) */}
+      <div className="lg:hidden divide-y divide-gray-100">
         {loading ? (
-          Array(4).fill(0).map((_, i) => (
-            <div key={i} className="border border-gray-100 rounded-xl p-4 animate-pulse space-y-3">
-              <div className="h-4 bg-gray-100 rounded w-2/3" />
-              <div className="h-3 bg-gray-100 rounded w-1/3" />
-              <div className="h-7 bg-gray-100 rounded w-full" />
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className="p-4 animate-pulse flex gap-3">
+              <div className="w-20 h-14 bg-gray-100 rounded-lg" />
+              <div className="flex-1 space-y-2"><div className="h-4 bg-gray-100 rounded w-2/3" /><div className="h-3 bg-gray-100 rounded w-1/2" /></div>
             </div>
           ))
         ) : cars.length === 0 ? (
-          <p className="col-span-full py-8 text-center text-sm text-gray-400">No cars found</p>
+          empty
         ) : (
-          cars.map((car) => {
-            const isSold = car.status === "sold";
-            return (
-              <div
-                key={car._id}
-                className={`border border-gray-100 rounded-xl p-4 space-y-3 min-w-0 ${isSold ? "bg-gray-50/60" : ""}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">
-                      {car.make} {car.model}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {car.year} · ${car.price?.toLocaleString()}
-                    </p>
+          cars.map((car) => (
+            <div key={car._id} className="p-4">
+              <div className="flex gap-3">
+                <Thumb src={car.images?.[0]} size="lg" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-gray-900 leading-snug line-clamp-2">{title(car)}</p>
+                    <StatusBadge sold={car.status === "sold"} />
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${statusClass(isSold)}`}>
-                    {isSold ? "Sold" : "Available"}
-                  </span>
+                  <p className="text-xs text-gray-500 mt-0.5">Stock #{car.stockNo ?? "—"} · {km(car.mileage)}</p>
+                  <p className="text-sm font-bold text-[#0A1628] mt-1">{usd(car.price)}</p>
                 </div>
-
-                <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${conditionClass(car.condition)}`}>
-                  {car.condition || "N/A"}
-                </span>
-
-                {renderActions(car)}
               </div>
-            );
-          })
+              {(car.isRecommended || car.isBestDeal) && <div className="mt-2"><Flags car={car} /></div>}
+              {!compact && showActions && (
+                <div className="mt-3 flex items-center gap-2">
+                  {soldToggle(car, "flex-1")}
+                  {iconActions(car)}
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
-      {/* ── TABLE (laptops and larger) ── */}
+      {/* TABLE (laptops and larger) */}
       <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-              <th className="px-5 py-3 text-left">Car</th>
-              <th className="px-5 py-3 text-left">Price</th>
-              <th className="px-5 py-3 text-left">Year</th>
-              <th className="px-5 py-3 text-left hidden xl:table-cell">Condition</th>
-              <th className="px-5 py-3 text-left">Status</th>
-              <th className="px-5 py-3 text-left">Actions</th>
+            <tr className="border-b border-gray-100 text-gray-500 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
+              <th className="px-5 py-3 text-left font-semibold">Vehicle</th>
+              <th className="px-4 py-3 text-right font-semibold">FOB price</th>
+              {!compact && <th className="px-4 py-3 text-right font-semibold">Mileage</th>}
+              {!compact && <th className="px-4 py-3 text-right font-semibold hidden 2xl:table-cell">Views</th>}
+              <th className="px-4 py-3 text-left font-semibold">Status</th>
+              {!compact && <th className="px-4 py-3 text-left font-semibold hidden xl:table-cell">Listing</th>}
+              {showActions && <th className="px-5 py-3 text-right font-semibold">Actions</th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-gray-100">
             {loading ? (
-              Array(LIMIT).fill(0).map((_, i) => (
+              Array(compact ? 4 : 6).fill(0).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-32" /></td>
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-12" /></td>
-                  <td className="px-5 py-3 hidden xl:table-cell"><div className="h-4 bg-gray-100 rounded w-16" /></td>
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
-                  <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-24" /></td>
+                  <td colSpan={colCount} className="px-5 py-3"><div className="h-11 bg-gray-100 rounded-lg" /></td>
                 </tr>
               ))
             ) : cars.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
-                  No cars found
-                </td>
-              </tr>
+              <tr><td colSpan={colCount}>{empty}</td></tr>
             ) : (
-              cars.map((car) => {
-                const isSold = car.status === "sold";
-                return (
-                  <tr key={car._id} className={`hover:bg-gray-50 transition ${isSold ? "bg-gray-50/60" : ""}`}>
-                    <td className="px-5 py-3 font-medium text-gray-800 whitespace-nowrap">
-                      {car.make} {car.model}
-                    </td>
-                    <td className="px-5 py-3 text-gray-600">${car.price?.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-gray-600">{car.year}</td>
-                    <td className="px-5 py-3 hidden xl:table-cell">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${conditionClass(car.condition)}`}>
-                        {car.condition || "N/A"}
-                      </span>
-                    </td>
+              cars.map((car) => (
+                <tr key={car._id} className="hover:bg-[#F5F9FF] transition">
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Thumb src={car.images?.[0]} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate max-w-[280px]">{title(car)}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[280px]">
+                          Stock #{car.stockNo ?? "—"}
+                          {car.vin ? ` · ${car.vin}` : ""}
+                          {car.location ? ` · ${car.location}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <span className="font-semibold text-[#0A1628]">{usd(car.price)}</span>
+                    {car.originalPrice > car.price && (
+                      <span className="block text-xs text-gray-400 line-through">{usd(car.originalPrice)}</span>
+                    )}
+                  </td>
+                  {!compact && <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap tabular-nums">{km(car.mileage)}</td>}
+                  {!compact && <td className="px-4 py-3 text-right text-gray-600 tabular-nums hidden 2xl:table-cell">{car.views || 0}</td>}
+                  <td className="px-4 py-3"><StatusBadge sold={car.status === "sold"} /></td>
+                  {!compact && <td className="px-4 py-3 hidden xl:table-cell"><Flags car={car} /></td>}
+                  {showActions && (
                     <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusClass(isSold)}`}>
-                        {isSold ? "Sold" : "Available"}
-                      </span>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {!compact && soldToggle(car)}
+                        {compact ? (
+                          canEdit && (
+                            <IconButton label="Edit" onClick={() => navigate(`/admin/cars/edit/${car._id}`)}>
+                              <Pencil size={15} />
+                            </IconButton>
+                          )
+                        ) : (
+                          iconActions(car)
+                        )}
+                      </div>
                     </td>
-                    <td className="px-5 py-3">{renderActions(car, true)}</td>
-                  </tr>
-                );
-              })
+                  )}
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* ── Pagination ── */}
-      {totalPages > 1 && (
-        <div className="px-4 sm:px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
-          <p className="text-xs text-gray-400">
-            Page {page} of {totalPages} · {total} vehicles
-          </p>
-          <div className="flex items-center flex-wrap gap-1">
-            <PageBtn
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              label="Prev"
-            />
-            {getPageNumbers().map((p, i) =>
-              p === "..."
-                ? <span key={`e${i}`} className="w-8 text-center text-gray-400 text-sm">…</span>
-                : <PageBtn key={p} onClick={() => setPage(p)} active={p === page} label={p} />
-            )}
-            <PageBtn
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              label="Next"
-            />
+      {/* PAGINATION */}
+      {!compact && totalPages > 1 && (
+        <div className="px-4 sm:px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-3">
+          <p className="text-xs text-gray-500">Page {page} of {totalPages} · {total} vehicles</p>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+              <ChevronLeft size={14} /> Prev
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+              Next <ChevronRight size={14} />
+            </Button>
           </div>
         </div>
       )}
-
-    </div>
+    </Card>
   );
-}
 
-function PageBtn({ onClick, disabled, active, label }) {
+  if (compact) return list;
+
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`min-w-[36px] h-8 px-2 rounded-lg text-xs font-medium border transition-colors
-        ${active ? "bg-[#29ABE2] text-white border-[#29ABE2]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}
-        disabled:opacity-30 disabled:cursor-not-allowed`}
-    >
-      {label}
-    </button>
+    <div>
+      <PageHeader
+        title="Cars"
+        subtitle="Manage stock, prices and how vehicles appear on the website."
+        actions={
+          can("cars.create") && (
+            <Link to="/admin/cars/new" className={btnClass("primary")}>
+              <Plus size={16} /> Add car
+            </Link>
+          )
+        }
+      />
+      {list}
+    </div>
   );
 }

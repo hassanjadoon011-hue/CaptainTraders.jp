@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const Car = require("../models/Car");
 const Message = require("../models/Message");
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-router.get("/", protect, async (req, res, next) => {
+router.get("/", protect, authorize("dashboard.view"), async (req, res, next) => {
   try {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);

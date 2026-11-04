@@ -30,7 +30,7 @@ async function seedAdmin() {
     await Admin.create({
       email,
       password: hashedPassword,
-      role: "admin",
+      role: "owner",
     });
 
     console.log(`Admin created successfully: ${email}`);

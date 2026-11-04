@@ -1,189 +1,268 @@
-import { useEffect, useState } from "react"
-import { useParams, Link } from "react-router-dom"
-import axiosClient from "../api/axiosClient"
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { Printer, MessageSquare, Eye, ChevronRight, AlertTriangle, Check } from "lucide-react";
+import axiosClient from "../api/axiosClient";
+import CarCard from "../components/cars/CarCard";
+import ImageGallery from "../components/cars/detail/ImageGallery";
+import PriceCalculator from "../components/cars/detail/PriceCalculator";
+import InquiryForm from "../components/cars/detail/InquiryForm";
+import { usd } from "../constants/stockOptions";
 
-const formatEngine = (engine) => {
-  if (!engine) return null
-  const value = String(engine).trim()
-  return /^\d+$/.test(value) ? `${value} cc` : value
+
+const ym = (y, m) => (y ? (m ? `${y} / ${m}` : `${y}`) : null);
+
+const buildSpecs = (c) => [
+  ["Stock No", c.stockNo],
+  ["Transmission", c.transmission],
+  ["Location", c.location],
+  ["Fuel", c.fuelType],
+  ["Chassis No.", c.vin],
+  ["Drive", c.drivetrain],
+  ["Model Code", c.modelCode],
+  ["Ext. Color", c.color],
+  ["Registration Year / Month", ym(c.regYear, c.regMonth)],
+  ["Steering", c.steering],
+  ["Manufacture Year / Month", ym(c.mfgYear, c.mfgMonth)],
+  ["Seats", c.seats],
+  ["Mileage", c.mileage != null ? `${Number(c.mileage).toLocaleString()} km` : null],
+  ["Doors", c.doors],
+  ["Engine Size", c.engine ? `${c.engine}${/cc/i.test(c.engine) ? "" : " CC"}` : null],
+  ["Body Type", c.bodyType],
+  ["Engine Code", c.engineCode],
+  ["Volume (M³)", c.m3],
+];
+
+function Skeleton() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 animate-pulse">
+      <div className="h-4 w-64 bg-gray-200 rounded mb-6" />
+      <div className="grid lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 aspect-[4/3] bg-gray-200 rounded-xl" />
+        <div className="lg:col-span-2 h-96 bg-gray-200 rounded-xl" />
+      </div>
+    </div>
+  );
 }
 
 export default function CarDetailPage() {
-  const { id } = useParams()
+  const { id } = useParams();
+  const [car, setCar] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  const [car, setCar] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [activeImg, setActiveImg] = useState(0)
+  const [calc, setCalc] = useState({ country: "", port: "", insurance: false, inspection: false });
+  const [quote, setQuote] = useState(null);
+  const countedFor = useRef(null);
 
   useEffect(() => {
-    const fetchCar = async () => {
-      try {
-        setLoading(true)
+    let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
+    setQuote(null);
+    setCalc({ country: "", port: "", insurance: false, inspection: false });
 
-        const res = await axiosClient.get(`/cars/${id}`)
+    // Count the page view only once per visit to this car
+    const countView = countedFor.current !== id;
+    countedFor.current = id;
 
-        setCar(res.data?.data || null)
-        setActiveImg(0)
-        window.scrollTo(0, 0)
-      } catch (err) {
-        console.error(err)
-        setCar(null)
-      } finally {
-        setLoading(false)
-      }
-    }
+    axiosClient
+      .get(`/cars/${id}`, { params: countView ? { view: 1 } : {} })
+      .then((res) => {
+        if (!cancelled) setCar(res.data?.data || null);
+      })
+      .catch(() => {
+        if (!cancelled) setNotFound(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    fetchCar()
-  }, [id])
+    return () => { cancelled = true; };
+  }, [id]);
 
-  if (loading) {
+  // More cars of the same make
+  useEffect(() => {
+    if (!car?.make) return;
+    axiosClient
+      .get("/cars", { params: { make: car.make, status: "available", limit: 5 } })
+      .then((res) => setRelated((res.data?.data || []).filter((c) => c._id !== car._id).slice(0, 4)))
+      .catch(() => setRelated([]));
+  }, [car?._id, car?.make]);
+
+  if (loading) return <Skeleton />;
+
+  if (notFound || !car) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading...
-      </div>
-    )
-  }
-
-  if (!car) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
-        <p>Car not found</p>
-        <Link to="/cars" className="text-blue-500 mt-2">
-          Back to Inventory
+      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+        <AlertTriangle size={40} className="mx-auto text-gray-300" />
+        <h1 className="text-xl font-bold text-gray-800 mt-4">Vehicle not found</h1>
+        <p className="text-sm text-gray-500 mt-2">It may have been sold or removed.</p>
+        <Link to="/cars" className="inline-block mt-6 bg-[#29ABE2] hover:bg-[#1B7DB3] text-white font-semibold px-6 py-2.5 rounded-lg transition">
+          Browse all stock
         </Link>
       </div>
-    )
+    );
   }
 
-  const isSold = car.status === "sold"
-
-  const images =
-    car.images?.length > 0
-      ? car.images
-      : ["https://via.placeholder.com/800x500?text=No+Image"]
-
-  const specs = [
-    { label: "Make", value: car.make },
-    { label: "Model", value: car.model },
-    { label: "Year", value: car.year },
-    {
-      label: "Price",
-      value: car.price ? `USD ${Number(car.price).toLocaleString()}` : null,
-    },
-    {
-      label: "Mileage",
-      value: car.mileage ? `${Number(car.mileage).toLocaleString()} km` : null,
-    },
-    { label: "Fuel Type", value: car.fuelType },
-    { label: "Engine", value: formatEngine(car.engine) },
-    { label: "Power", value: car.power ? `${car.power} HP` : null },
-    { label: "Transmission", value: car.transmission },
-    { label: "Drivetrain", value: car.drivetrain },
-    { label: "Body Type", value: car.bodyType },
-    { label: "Color", value: car.color },
-    { label: "Condition", value: car.condition },
-    { label: "Location", value: car.location },
-    { label: "VIN", value: car.vin },
-  ].filter((item) => item.value)
+  const sold = car.status === "sold";
+  const title = [car.year, car.make, car.model].filter(Boolean).join(" ");
+  const saving = car.originalPrice && car.originalPrice > car.price ? car.originalPrice - car.price : 0;
+  const savingPct = saving ? ((saving / car.originalPrice) * 100).toFixed(1) : 0;
+  const specs = buildSpecs(car);
 
   return (
-    <div className="bg-[#F5F9FF] min-h-screen py-6 md:py-10">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-6 md:gap-8">
+    <div className="bg-[#F5F9FF] min-h-screen pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
 
-        {/* LEFT SIDE */}
-        <div className="md:col-span-2 space-y-5 md:space-y-6 min-w-0 order-2 md:order-none">
-          {/* MAIN IMAGE */}
-          <div className="relative bg-white border rounded-xl overflow-hidden">
-            <img
-              src={images[activeImg]}
-              alt={`${car.make} ${car.model}`}
-              className={`w-full h-60 sm:h-80 md:h-[450px] object-cover ${isSold ? "opacity-80" : ""}`}
-            />
-            {isSold && (
-              <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
-                Sold
-              </span>
-            )}
-          </div>
-
-          {/* THUMBNAILS */}
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {images.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`Thumbnail ${index + 1}`}
-                  onClick={() => setActiveImg(index)}
-                  className={`h-16 w-20 sm:h-20 sm:w-24 shrink-0 object-cover cursor-pointer rounded border-2 ${
-                    index === activeImg ? "border-blue-500" : "border-gray-200"
-                  }`}
-                />
-              ))}
-            </div>
+        {/* BREADCRUMB */}
+        <nav className="flex items-center flex-wrap gap-1 text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-[#29ABE2]">Home</Link>
+          <ChevronRight size={12} />
+          <Link to="/cars" className="hover:text-[#29ABE2]">Stock</Link>
+          {car.make && (
+            <>
+              <ChevronRight size={12} />
+              <Link to={`/cars?make=${encodeURIComponent(car.make)}`} className="hover:text-[#29ABE2]">{car.make}</Link>
+            </>
           )}
+          <ChevronRight size={12} />
+          <span className="text-gray-800 font-medium">{car.model}</span>
+        </nav>
 
-          {/* DESCRIPTION */}
-          {car.description && (
-            <div className="bg-white border rounded-xl p-4 sm:p-5">
-              <h2 className="font-bold mb-3 text-lg">Description</h2>
-              <p className="text-gray-600 whitespace-pre-line break-words">{car.description}</p>
-            </div>
-          )}
-
-          {/* SPECIFICATIONS */}
-          <div className="bg-white border rounded-xl p-4 sm:p-5">
-            <h2 className="font-bold mb-4 text-lg">Specifications</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {specs.map((spec) => (
-                <div key={spec.label} className="break-words">
-                  <span className="font-semibold">{spec.label}:</span>{" "}
-                  {spec.value}
-                </div>
-              ))}
+        {/* TITLE */}
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-5">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              {sold && <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full">SOLD</span>}
+              {car.isBestDeal && <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">Best Deal</span>}
+              {car.isRecommended && <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">Recommended</span>}
+              {car.condition && <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{car.condition}</span>}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="flex items-center gap-2 text-sm text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-lg transition print:hidden"
+          >
+            <Printer size={16} /> Print
+          </button>
         </div>
 
-        {/* RIGHT SIDE (shown first on phones) */}
-        <div className="order-1 md:order-none min-w-0">
-          <div className="bg-white border rounded-xl p-4 sm:p-5 md:sticky md:top-5">
-            <h1 className="text-xl sm:text-2xl font-bold">
-              {car.make} {car.model} {car.year}
-            </h1>
 
-            <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-3 sm:mt-4">
-              USD {Number(car.price || 0).toLocaleString()}
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-            <p className="text-xs text-gray-400 mt-2">
-              All information provided by seller
-            </p>
+          {/* LEFT: photos, details */}
+          <div className="lg:col-span-3 space-y-6 min-w-0">
+            <ImageGallery images={car.images || []} alt={title} sold={sold} />
 
-            {isSold ? (
-              <div className="mt-5">
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                  This vehicle has been sold.
-                </div>
-                <Link
-                  to="/cars"
-                  className="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg mt-3 transition"
-                >
-                  Browse Available Cars
-                </Link>
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+              <h2 className="text-base font-bold text-gray-900 mb-4">Car Details</h2>
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+                {specs.map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between gap-4 py-2.5 border-b border-gray-100 text-sm">
+                    <dt className="text-gray-500">{label}</dt>
+                    <dd className="font-semibold text-gray-800 text-right">{value ?? "N/A"}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="text-xs text-gray-400 mt-4">
+                For more information about the year and month of manufacture, please contact us.
+              </p>
+            </div>
+
+            {car.features?.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4">Standard Features</h2>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {car.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                      <Check size={15} className="text-[#29ABE2] shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ) : (
-              <Link
-                to="/contact"
-                className="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg mt-5 transition"
-              >
-                Contact Seller
-              </Link>
+            )}
+
+            {car.description && (
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                <h2 className="text-base font-bold text-gray-900 mb-3">Description</h2>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{car.description}</p>
+              </div>
             )}
           </div>
+
+          {/* RIGHT: price + calculator */}
+          <div className="lg:col-span-2 space-y-6 min-w-0">
+            <div className="lg:sticky lg:top-4 space-y-6">
+
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Current FOB price</p>
+                <p className="text-3xl font-extrabold text-[#1B7DB3] mt-1">{usd(car.price)}</p>
+
+                <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-400">You save</p>
+                    <p className={`font-bold ${saving ? "text-green-600" : "text-gray-700"}`}>
+                      {saving ? `${usd(saving)} (${savingPct}%)` : "$0.00"}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-400">Original FOB price</p>
+                    <p className="font-bold text-gray-700">{usd(car.originalPrice || car.price)}</p>
+                  </div>
+                </div>
+
+                <p className="flex items-center gap-1.5 text-xs text-gray-400 mt-4">
+                  <Eye size={14} /> Page views: {Number(car.views || 0).toLocaleString()}
+                </p>
+
+                {!sold && (
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" })}
+                    className="mt-4 w-full flex items-center justify-center gap-2 border border-[#29ABE2] text-[#1B7DB3] hover:bg-[#29ABE2]/5 font-semibold py-2.5 rounded-lg transition print:hidden"
+                  >
+                    <MessageSquare size={16} /> Send Inquiry
+                  </button>
+                )}
+              </div>
+
+              {sold ? (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
+                  <p className="font-bold text-red-700">This vehicle has been sold</p>
+                  <p className="text-sm text-red-600/80 mt-1">Browse our stock for similar vehicles.</p>
+                  <Link to={`/cars?make=${encodeURIComponent(car.make || "")}`} className="inline-block mt-4 bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+                    More {car.make} cars
+                  </Link>
+                </div>
+              ) : (
+                <div className="print:hidden">
+                  <PriceCalculator key={car._id} car={car} setCalc={setCalc} setQuote={setQuote} />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* FORM */}
+        {!sold && (
+          <div className="mt-8 max-w-4xl print:hidden">
+            <InquiryForm car={car} calc={calc} quote={quote} />
+          </div>
+        )}
+
+        {/* MORE CARS */}
+        {related.length > 0 && (
+          <section className="mt-12 print:hidden">
+            <h2 className="text-xl font-bold text-gray-900 mb-5">More Cars To Consider</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {related.map((c) => <CarCard key={c._id} car={c} />)}
+            </div>
+          </section>
+        )}
       </div>
     </div>
-  )
+  );
 }

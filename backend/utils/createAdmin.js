@@ -31,7 +31,7 @@ const run = async () => {
 
   await Admin.findOneAndUpdate(
     { email },
-    { email, password: hash, role: "admin" },
+    { email, password: hash, role: "owner", isActive: true },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 

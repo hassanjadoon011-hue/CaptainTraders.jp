@@ -1,14 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Mail, Phone, Clock } from 'lucide-react'
-
-/* ───────────────────────────────────────────────────────────
-   EDIT THESE WITH THE CLIENT'S REAL DETAILS BEFORE LAUNCH
-   (keep them the same as Footer, ContactPage and PurchasingPage)
-─────────────────────────────────────────────────────────── */
-const CONTACT = {
-  email: 'info@captaintraders.jp',
-  phone: '+81-6-0000-0000',
-}
+import { CONTACT } from '../../constants/siteConfig'
 
 const getJapanTime = () =>
   new Date().toLocaleTimeString('en-GB', {

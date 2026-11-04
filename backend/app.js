@@ -12,6 +12,9 @@ const carRoutes = require("./routes/car.routes");
 const adminRoutes = require("./routes/admin.routes");
 const messageRoutes = require("./routes/message.routes");
 const statsRoutes = require("./routes/stats.routes");
+const orderRoutes = require("./routes/order.routes");
+const shippingRoutes = require("./routes/shipping.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 
 const app = express();
 
@@ -48,7 +51,7 @@ app.use(
 app.use("/api", apiLimiter);
 
 // ─── Body Parsing (JSON only) ─────────────────────────────────────────────────
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({ limit: "50kb" }));
 app.use(cookieParser());
 
 // ─── NoSQL Injection Sanitization ────────────────────────────────────────────
@@ -76,6 +79,9 @@ app.use("/api/cars", carRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/shipping", shippingRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
