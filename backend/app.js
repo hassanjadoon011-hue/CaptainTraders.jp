@@ -20,6 +20,7 @@ const expenseRoutes = require("./routes/expense.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const shipmentRoutes = require("./routes/shipment.routes");
 const importRuleRoutes = require("./routes/importRule.routes");
+const reportRoutes = require("./routes/report.routes");
 
 const app = express();
 
@@ -92,6 +93,7 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/import-rules", importRuleRoutes);
+app.use("/api/reports", reportRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

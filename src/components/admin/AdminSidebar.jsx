@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor, Landmark,
+  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor, Landmark, BarChart3,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import { getOrders } from "../../api/orderApi";
-import { useAdmin } from "../../context/AdminAuthContext";
+import { useAdmin, ROLE_LABELS } from "../../context/AdminAuthContext";
 
 export default function AdminSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
-  const { can } = useAdmin();
+  const { admin, can } = useAdmin();
+  const displayName = admin?.name || admin?.email || "Admin";
   const [newOrders, setNewOrders] = useState(0);
   const [unread, setUnread] = useState(0);
 
@@ -46,7 +47,10 @@ export default function AdminSidebar({ isOpen, onClose }) {
   const sections = [
     {
       title: "Overview",
-      items: [{ to: "/admin", label: "Dashboard", icon: LayoutDashboard, active: pathname === "/admin" }],
+      items: [
+        { to: "/admin", label: "Dashboard", icon: LayoutDashboard, active: pathname === "/admin" },
+        { to: "/admin/reports", label: "Reports", icon: BarChart3, active: pathname.startsWith("/admin/reports"), perm: "finance.view" },
+      ],
     },
     {
       title: "Sales",
@@ -155,6 +159,18 @@ export default function AdminSidebar({ isOpen, onClose }) {
           ))}
         </nav>
 
+        {/* SIGNED-IN USER (information only: no menu, no arrows) */}
+        <div className="p-3 border-t border-white/20 shrink-0">
+          <div className="flex items-center gap-3 px-2 py-1.5">
+            <span className="w-8 h-8 rounded-full bg-white text-[#1B7DB3] flex items-center justify-center text-sm font-bold shrink-0" aria-hidden="true">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block text-sm font-semibold truncate">{displayName}</span>
+              <span className="block text-[11px] text-white/80">{ROLE_LABELS[admin?.role] || "Admin"}</span>
+            </span>
+          </div>
+        </div>
       </aside>
     </>
   );
