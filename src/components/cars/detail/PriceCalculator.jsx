@@ -41,7 +41,7 @@ function YesNo({ icon: Icon, label, hint, value, onChange }) {
       <div
         role="radiogroup"
         aria-label={label}
-        className="grid grid-cols-2 h-12 sm:h-11 rounded-lg bg-gray-100 p-1 gap-1"
+        className="grid grid-cols-2 rounded-lg bg-gray-100 p-1 gap-1"
       >
         {[
           { v: true, t: 'Yes' },
@@ -53,7 +53,7 @@ function YesNo({ icon: Icon, label, hint, value, onChange }) {
             role="radio"
             aria-checked={value === o.v}
             onClick={() => onChange(o.v)}
-            className={`rounded-md text-sm font-semibold transition ${
+            className={`h-11 rounded-md text-sm font-semibold transition ${
               value === o.v ? 'bg-white text-[#1B7DB3] shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -71,6 +71,7 @@ export default function PriceCalculator({
   setQuote,                 // optional: shares the server quote with the inquiry form
   inquiryTo = '/contact',
   onOrder,                  // optional: shows an "Order Now" button
+  onInquiry,                // optional: open the inquiry form on this page instead of /contact
 }) {
   const { settings, loading, error: loadError } = useShippingSettings()
 
@@ -150,6 +151,36 @@ export default function PriceCalculator({
 
   const noRates = !loading && !loadError && countries.length === 0
 
+  // One "Send Inquiry" action: the form on this page if available, else the contact page
+  const InquiryButton = ({ className, children }) =>
+    onInquiry ? (
+      <button type="button" onClick={onInquiry} className={className}>{children}</button>
+    ) : (
+      <Link to={inquiryLink} className={className}>{children}</Link>
+    )
+
+  // No shipping rates (or they failed to load): no calculator, just a quote request
+  if (loadError || noRates) {
+    return (
+      <section className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#E0F5FF] text-[#29ABE2] flex items-center justify-center shrink-0">
+            <Send size={18} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-bold text-[#0A1628] leading-tight">Get a delivered price quote</h2>
+            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+              Tell us your country and port, and we will send you the total price including shipping.
+            </p>
+          </div>
+        </div>
+        <InquiryButton className="mt-4 w-full h-12 rounded-lg bg-[#29ABE2] hover:bg-[#1B7DB3] text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition">
+          <Send size={16} /> Send Inquiry
+        </InquiryButton>
+      </section>
+    )
+  }
+
   return (
     <section className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
       {/* Header */}
@@ -159,7 +190,7 @@ export default function PriceCalculator({
         </div>
         <div className="min-w-0">
           <h2 className="text-[15px] font-bold text-[#0A1628] leading-tight">Total Price Calculator</h2>
-          <p className="text-xs text-gray-500">Total price = vehicle price + shipping + options</p>
+          <p className="text-xs text-gray-500">Vehicle price + shipping + options to your port</p>
         </div>
       </div>
 
@@ -170,19 +201,7 @@ export default function PriceCalculator({
         </div>
       )}
 
-      {(loadError || noRates) && (
-        <div className="rounded-xl bg-[#F0FAFF] border border-[#29ABE2]/20 p-4 text-sm text-gray-700">
-          {loadError || 'Shipping rates are not available yet. Send us an inquiry and we will quote you.'}
-          <Link
-            to={inquiryLink}
-            className="mt-3 flex sm:inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg bg-[#29ABE2] text-white text-sm font-semibold hover:opacity-90 transition"
-          >
-            <Send size={15} /> Send Inquiry
-          </Link>
-        </div>
-      )}
-
-      {!loading && !loadError && countries.length > 0 && (
+      {!loading && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="calc-country" label="Final country">
@@ -220,11 +239,11 @@ export default function PriceCalculator({
             </Field>
 
             {insuranceRate > 0 && (
-              <YesNo icon={ShieldCheck} label="Marine insurance" hint={`${insuranceRate}% of FOB`} value={insurance}
+              <YesNo icon={ShieldCheck} label="Insurance" hint={`${insuranceRate}% of price`} value={insurance}
                 onChange={(v) => { setInsurance(v); reset() }} />
             )}
             {inspectionFee > 0 && (
-              <YesNo icon={ClipboardCheck} label="Pre-export inspection" hint={usd(inspectionFee)} value={inspection}
+              <YesNo icon={ClipboardCheck} label="Inspection" hint={usd(inspectionFee)} value={inspection}
                 onChange={(v) => { setInspection(v); reset() }} />
             )}
           </div>
@@ -240,7 +259,7 @@ export default function PriceCalculator({
               type="button"
               onClick={calculate}
               disabled={busy}
-              className="flex-1 h-12 sm:h-11 rounded-lg bg-[#29ABE2] hover:opacity-90 disabled:opacity-60 text-white text-sm font-bold transition"
+              className="w-full sm:flex-1 h-12 sm:h-11 rounded-lg bg-[#29ABE2] hover:opacity-90 disabled:opacity-60 text-white text-sm font-bold transition"
             >
               {busy ? 'Calculating…' : 'Calculate'}
             </button>
@@ -248,7 +267,7 @@ export default function PriceCalculator({
               <button
                 type="button"
                 onClick={onOrder}
-                className="flex-1 h-12 sm:h-11 rounded-lg bg-[#0A1628] hover:opacity-90 text-white text-sm font-bold transition inline-flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 h-12 sm:h-11 rounded-lg bg-[#0A1628] hover:opacity-90 text-white text-sm font-bold transition inline-flex items-center justify-center gap-2"
               >
                 <ShoppingCart size={16} /> Order Now
               </button>
@@ -263,12 +282,12 @@ export default function PriceCalculator({
                 </p>
                 <dl className="px-4 sm:px-5 py-3 text-sm divide-y divide-[#29ABE2]/10">
                   <div className="flex justify-between gap-4 py-2">
-                    <dt className="text-gray-600">Vehicle price (FOB)</dt>
+                    <dt className="text-gray-600">Vehicle price</dt>
                     <dd className="font-semibold text-gray-900 tabular-nums">{usd(vehiclePrice)}</dd>
                   </div>
                   <div className="flex justify-between gap-4 py-2">
                     <dt className="text-gray-600 min-w-0 break-words">
-                      Ocean freight
+                      Shipping
                       <span className="block text-[11px] text-gray-400">
                         {result.freightMethod === 'm3' ? `${result.m3} M³ × ${usd(result.ratePerM3)} per M³` : 'Flat rate to this destination'}
                       </span>
@@ -277,13 +296,13 @@ export default function PriceCalculator({
                   </div>
                   {result.insurance > 0 && (
                     <div className="flex justify-between gap-4 py-2">
-                      <dt className="text-gray-600">Marine insurance <span className="text-[11px] text-gray-400">({insuranceRate}% of FOB)</span></dt>
+                      <dt className="text-gray-600">Insurance <span className="text-[11px] text-gray-400">({insuranceRate}% of vehicle price)</span></dt>
                       <dd className="font-semibold text-gray-900 tabular-nums">{usd(result.insurance)}</dd>
                     </div>
                   )}
                   {result.inspection > 0 && (
                     <div className="flex justify-between gap-4 py-2">
-                      <dt className="text-gray-600">Pre-export inspection</dt>
+                      <dt className="text-gray-600">Inspection</dt>
                       <dd className="font-semibold text-gray-900 tabular-nums">{usd(result.inspection)}</dd>
                     </div>
                   )}
@@ -298,12 +317,9 @@ export default function PriceCalculator({
                       {usd(result.total)}
                     </p>
                   </div>
-                  <Link
-                    to={inquiryLink}
-                    className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg border border-[#29ABE2] text-[#1B7DB3] text-sm font-semibold hover:bg-white transition"
-                  >
+                  <InquiryButton className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg border border-[#29ABE2] text-[#1B7DB3] text-sm font-semibold hover:bg-white transition">
                     <Send size={15} /> Send Inquiry
-                  </Link>
+                  </InquiryButton>
                 </div>
               </div>
             )}

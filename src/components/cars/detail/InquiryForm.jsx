@@ -21,8 +21,9 @@ const FIELDS = [
   { name: "address", label: "Address", full: true, autoComplete: "street-address" },
 ];
 
+// 48px tall on phones, text-base so iOS does not zoom into the field
 const input =
-  "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-white outline-none focus:ring-2 focus:ring-[#29ABE2] focus:border-transparent transition placeholder-gray-400";
+  "w-full min-h-12 sm:min-h-11 border border-gray-200 rounded-lg px-3 py-2.5 text-base sm:text-sm text-gray-700 bg-white outline-none focus:ring-2 focus:ring-[#29ABE2] focus:border-transparent transition placeholder-gray-400";
 
 const validate = (f) => {
   if (f.name.trim().length < 2) return "Please enter your name.";
@@ -124,8 +125,8 @@ export default function InquiryForm({ car, calc, quote }) {
       noValidate
       className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6 scroll-mt-24"
     >
-      <h3 className="text-lg font-bold text-gray-900">Inquiry / Your Details / Order</h3>
-      <p className="text-sm text-gray-500 mt-1">Please fill in all the fields.</p>
+      <h2 className="text-lg font-bold text-gray-900">Send an inquiry or place an order</h2>
+      <p className="text-sm text-gray-500 mt-1">We reply by email with a quotation. Fields marked * are required.</p>
 
       {/* MODE */}
       <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl mt-5">
@@ -137,7 +138,8 @@ export default function InquiryForm({ car, calc, quote }) {
             key={o.v}
             type="button"
             onClick={() => { setMode(o.v); setError(""); }}
-            className={`py-2.5 rounded-lg text-sm font-semibold transition ${
+            aria-pressed={mode === o.v}
+            className={`min-h-11 py-2.5 rounded-lg text-sm font-semibold transition ${
               mode === o.v ? "bg-white text-[#1B7DB3] shadow-sm" : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -158,7 +160,7 @@ export default function InquiryForm({ car, calc, quote }) {
           <p className="text-xs text-gray-500">Stock No. {car.stockNo ?? "N/A"}</p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-[11px] text-gray-400">{quote?.available ? "Total (CIF)" : "FOB price"}</p>
+          <p className="text-[11px] text-gray-400">{quote?.available ? "Delivered total" : "Price"}</p>
           <p className="text-sm font-bold text-gray-900">{usd(quote?.available ? quote.total : car.price)}</p>
         </div>
       </div>
@@ -233,7 +235,7 @@ export default function InquiryForm({ car, calc, quote }) {
               type="checkbox"
               checked={agreed}
               onChange={(e) => { setAgreed(e.target.checked); setError(""); }}
-              className="w-4 h-4 mt-0.5"
+              className="w-5 h-5 mt-0.5 shrink-0"
             />
             Yes, I have read and agree to the Vehicle Purchase Agreement above.
           </label>
@@ -243,10 +245,10 @@ export default function InquiryForm({ car, calc, quote }) {
       <button
         type="submit"
         disabled={sending}
-        className="mt-6 w-full sm:w-auto sm:min-w-[220px] bg-[#29ABE2] hover:bg-[#1B7DB3] disabled:opacity-60 text-white font-bold px-8 py-3 rounded-lg transition shadow flex items-center justify-center gap-2"
+        className="mt-6 w-full sm:w-auto sm:min-w-[220px] h-12 bg-[#29ABE2] hover:bg-[#1B7DB3] disabled:opacity-60 text-white font-bold px-8 rounded-lg transition shadow flex items-center justify-center gap-2"
       >
         {sending && <Loader2 size={16} className="animate-spin" />}
-        {sending ? "Sending..." : mode === "order" ? "ORDER NOW" : "SEND INQUIRY"}
+        {sending ? "Sending..." : mode === "order" ? "Place Order" : "Send Inquiry"}
       </button>
       {mode === "order" && (
         <p className="text-xs text-gray-400 mt-3">
