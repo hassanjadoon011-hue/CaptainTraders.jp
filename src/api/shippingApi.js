@@ -32,3 +32,9 @@ export async function getQuote(payload) {
   const { data } = await api.post('/shipping/quote', payload)
   return data.data
 }
+
+/* Import duties & taxes (admin) */
+export const getImportRules = async () => (await api.get('/import-rules')).data.data
+export const createImportRule = async (data) => (await api.post('/import-rules', data)).data.data
+export const updateImportRule = async (id, data) => (await api.put(`/import-rules/${id}`, data)).data.data
+export const deleteImportRule = async (id) => (await api.delete(`/import-rules/${id}`)).data

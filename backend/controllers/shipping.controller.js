@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Car = require("../models/Car");
 const ShippingConfig = require("../models/ShippingConfig");
 const { calculateQuote, getConfig } = require("../services/pricing.service");
+const { estimateImport } = require("../services/import.service");
 
 const text = (v, max = 80) =>
   typeof v === "string" ? v.trim().replace(/\s+/g, " ").slice(0, max) : "";
@@ -25,7 +26,7 @@ const quote = async (req, res, next) => {
     const b = req.body || {};
     if (!mongoose.Types.ObjectId.isValid(b.carId)) return fail(res, "Invalid car.");
 
-    const car = await Car.findById(b.carId).select("price m3").lean();
+    const car = await Car.findById(b.carId).select("price m3 engine year mfgYear regYear").lean();
     if (!car) return fail(res, "Car not found.", 404);
 
     const data = await calculateQuote({
@@ -35,6 +36,7 @@ const quote = async (req, res, next) => {
       insurance: isTrue(b.insurance),
       inspection: isTrue(b.inspection),
     });
+    data.import = await estimateImport({ car, quote: data });
     res.json({ success: true, data });
   } catch (err) {
     next(err);

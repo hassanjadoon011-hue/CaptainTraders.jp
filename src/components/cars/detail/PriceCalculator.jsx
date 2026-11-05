@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calculator, ShieldCheck, ClipboardCheck, Info, Send, ShoppingCart } from 'lucide-react'
+import { Calculator, ShieldCheck, ClipboardCheck, Info, Send, ShoppingCart, Landmark, AlertTriangle } from 'lucide-react'
 import useShippingSettings from '../../../hooks/useShippingSettings'
 import { getQuote } from '../../../api/shippingApi'
 
@@ -308,6 +308,56 @@ export default function PriceCalculator({
               </div>
             )}
           </div>
+
+          {/* IMPORT COSTS (only for countries the admin has configured) */}
+          {result?.import && (
+            <div className="mt-4 rounded-xl border border-gray-200 overflow-hidden" aria-live="polite">
+              <p className="px-4 sm:px-5 pt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#1B7DB3]">
+                <Landmark size={14} /> Import costs in {result.import.country} (estimate)
+              </p>
+              {!result.import.available ? (
+                <p className="m-4 sm:mx-5 flex gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                  <AlertTriangle size={16} className="shrink-0 mt-0.5" /> {result.import.reason}
+                </p>
+              ) : (
+                <>
+                  <dl className="px-4 sm:px-5 py-3 text-sm divide-y divide-gray-100">
+                    <div className="flex justify-between gap-4 py-2">
+                      <dt className="text-gray-600">Customs value (CIF)</dt>
+                      <dd className="font-semibold text-gray-900 tabular-nums">{usd(result.import.customsValue)}</dd>
+                    </div>
+                    {result.import.lines.map((l) => (
+                      <div key={l.name} className="flex justify-between gap-4 py-2">
+                        <dt className="text-gray-600 min-w-0">{l.name}<span className="block text-[11px] text-gray-400">{l.detail}</span></dt>
+                        <dd className="font-semibold text-gray-900 tabular-nums shrink-0">{usd(l.amount)}</dd>
+                      </div>
+                    ))}
+                    <div className="flex justify-between gap-4 py-2 font-semibold">
+                      <dt className="text-gray-700">Total import costs</dt>
+                      <dd className="text-gray-900 tabular-nums">{usd(result.import.totalImport)}</dd>
+                    </div>
+                  </dl>
+                  <div className="px-4 sm:px-5 py-4 bg-[#0A1628] text-white flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold text-white/70">Estimated landed cost</p>
+                      <p className="text-2xl font-extrabold tabular-nums">{usd(result.import.landed)}</p>
+                    </div>
+                    {result.import.landedLocal != null && (
+                      <p className="text-sm text-white/80 tabular-nums">
+                        ≈ {result.import.currency} {result.import.landedLocal.toLocaleString('en-US')}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+              {(result.import.notes || result.import.skipped?.length > 0) && (
+                <p className="px-4 sm:px-5 py-3 text-[11px] text-gray-500 border-t border-gray-100">
+                  {result.import.notes}
+                  {result.import.skipped?.length > 0 && ` Not included (vehicle details missing): ${result.import.skipped.join(', ')}.`}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed">
             <p className="flex gap-2 bg-gray-50 rounded-lg p-3 text-gray-600">

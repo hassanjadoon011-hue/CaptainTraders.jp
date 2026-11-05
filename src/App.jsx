@@ -39,6 +39,7 @@ import CustomerDetail from "./components/admin/CustomerDetail";
 import CarCostsPanel from "./components/admin/CarCostsPanel";
 import PaymentsPanel from "./components/admin/PaymentsPanel";
 import ShipmentsPanel from "./components/admin/ShipmentsPanel";
+import ImportDutiesPanel from "./components/admin/ImportDutiesPanel";
 import { PageHeader } from "./components/admin/ui";
 import { useAdmin } from "./context/AdminAuthContext";
 
@@ -114,6 +115,7 @@ function AppContent() {
             <Route path="customers/:id" element={<RequirePermission perm="customers.view"><CustomerDetail /></RequirePermission>} />
             <Route path="cars/:id/costs" element={<RequirePermission perm="finance.view"><CarCostsPanel /></RequirePermission>} />
             <Route path="payments" element={<RequirePermission perm="finance.view"><PaymentsPanel /></RequirePermission>} />
+            <Route path="import-duties" element={<ImportDutiesPanel />} />
             <Route path="shipments" element={<RequirePermission perm="shipments.view"><ShipmentsPanel /></RequirePermission>} />
           </Route>
         </Routes>

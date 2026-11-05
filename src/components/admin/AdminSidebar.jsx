@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor,
+  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor, Landmark,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import { getOrders } from "../../api/orderApi";
@@ -64,6 +64,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
         { to: "/admin/cars", label: "Cars", icon: Car, active: pathname === "/admin/cars" || pathname.startsWith("/admin/cars/edit") || pathname.endsWith("/costs") },
         { to: "/admin/cars/new", label: "Add Car", icon: PlusCircle, active: pathname === "/admin/cars/new", perm: "cars.create" },
         { to: "/admin/shipping", label: "Shipping & Rates", icon: Ship, active: pathname.startsWith("/admin/shipping") },
+        { to: "/admin/import-duties", label: "Import Duties", icon: Landmark, active: pathname.startsWith("/admin/import-duties") },
       ],
     },
     {
