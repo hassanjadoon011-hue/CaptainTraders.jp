@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
+const { normalizeRole, permissionsFor } = require("../config/permissions");
 
 const SAFE_METHODS = ["GET", "HEAD", "OPTIONS"];
 
@@ -32,17 +33,32 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    // Reject tokens of admins that have been deleted
-    const admin = await Admin.findById(decoded.id).select("_id role");
-    if (!admin) {
+    // Role and status are read fresh, so changes apply immediately
+    const admin = await Admin.findById(decoded.id).select("_id role isActive passwordChangedAt");
+    if (!admin || admin.isActive === false) {
       return res.status(401).json({ success: false, message: "Not authorized" });
     }
 
-    req.admin = { id: admin._id.toString(), role: admin.role };
+    // Password changed after this session started: force a new login
+    if (admin.passwordChangedAt && decoded.iat * 1000 < admin.passwordChangedAt.getTime()) {
+      return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
+    }
+
+    const role = normalizeRole(admin.role);
+    req.admin = { id: admin._id.toString(), role, permissions: permissionsFor(role) };
     next();
   } catch (err) {
     next(err);
   }
 };
 
-module.exports = { protect };
+// Use after protect: router.delete("/:id", protect, authorize("cars.delete"), ...)
+const authorize = (...perms) => (req, res, next) => {
+  const have = req.admin?.permissions || [];
+  if (perms.every((p) => have.includes(p))) return next();
+  return res
+    .status(403)
+    .json({ success: false, message: "You do not have permission to do this." });
+};
+
+module.exports = { protect, authorize };

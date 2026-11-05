@@ -21,7 +21,7 @@ import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 
 /* ================= ADMIN ================= */
-import ProtectedRoute from "./utils/ProtectedRoute";
+import ProtectedRoute, { RequirePermission } from "./utils/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 
 /* ================= ADMIN COMPONENTS ================= */
@@ -30,22 +30,41 @@ import Listingstable from "./components/admin/Listingstable";
 import MessagesPanel from "./components/admin/MessagesPanel";
 import EditCarForm from "./components/admin/EditCarForm";
 import DashboardStats from "./components/admin/DashboardStats";
+import OrdersPanel from "./components/admin/OrdersPanel";
+import ShippingRatesPanel from "./components/admin/ShippingRatesPanel";
+import AdminUsersPanel from "./components/admin/AdminUsersPanel";
+import AccountPanel from "./components/admin/AccountPanel";
+import CustomersPanel from "./components/admin/CustomersPanel";
+import CustomerDetail from "./components/admin/CustomerDetail";
+import CarCostsPanel from "./components/admin/CarCostsPanel";
+import PaymentsPanel from "./components/admin/PaymentsPanel";
+import ShipmentsPanel from "./components/admin/ShipmentsPanel";
+import ImportDutiesPanel from "./components/admin/ImportDutiesPanel";
+import ReportsPanel from "./components/admin/ReportsPanel";
+import { PageHeader } from "./components/admin/ui";
+import { useAdmin } from "./context/AdminAuthContext";
 
 /* ================= ADMIN DASHBOARD HOME ================= */
 function DashboardHome() {
+  const { admin } = useAdmin();
+  const firstName = (admin?.name || "").split(" ")[0];
   return (
-    <>
+    <div className="space-y-5">
+      <PageHeader
+        title="Dashboard"
+        subtitle={`${firstName ? `Welcome back, ${firstName}. ` : ""}Here is how your business is doing.`}
+      />
       <DashboardStats />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div className="xl:col-span-2 min-w-0">
-          <Listingstable />
+          <Listingstable compact />
         </div>
         <div className="min-w-0">
-          <MessagesPanel />
+          <MessagesPanel compact />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -61,7 +80,7 @@ function AppContent() {
     <div className="min-h-screen flex flex-col">
       {showLayout && <Navbar />}
 
-      <main className="flex-1">
+      <main className="flex-1 min-w-0 w-full">
         <Routes>
           {/* PUBLIC ROUTES */}
           <Route path="/" element={<HomePage />} />
@@ -86,9 +105,20 @@ function AppContent() {
           >
             <Route index element={<DashboardHome />} />
             <Route path="cars" element={<Listingstable />} />
-            <Route path="cars/new" element={<AddCarForm />} />
-            <Route path="cars/edit/:id" element={<EditCarForm />} />
+            <Route path="cars/new" element={<RequirePermission perm="cars.create"><AddCarForm /></RequirePermission>} />
+            <Route path="cars/edit/:id" element={<RequirePermission perm="cars.edit"><EditCarForm /></RequirePermission>} />
+            <Route path="orders" element={<OrdersPanel />} />
+            <Route path="shipping" element={<ShippingRatesPanel />} />
             <Route path="messages" element={<MessagesPanel />} />
+            <Route path="users" element={<RequirePermission perm="users.manage"><AdminUsersPanel /></RequirePermission>} />
+            <Route path="account" element={<AccountPanel />} />
+            <Route path="customers" element={<RequirePermission perm="customers.view"><CustomersPanel /></RequirePermission>} />
+            <Route path="customers/:id" element={<RequirePermission perm="customers.view"><CustomerDetail /></RequirePermission>} />
+            <Route path="cars/:id/costs" element={<RequirePermission perm="finance.view"><CarCostsPanel /></RequirePermission>} />
+            <Route path="payments" element={<RequirePermission perm="finance.view"><PaymentsPanel /></RequirePermission>} />
+            <Route path="import-duties" element={<ImportDutiesPanel />} />
+            <Route path="reports" element={<RequirePermission perm="finance.view"><ReportsPanel /></RequirePermission>} />
+            <Route path="shipments" element={<RequirePermission perm="shipments.view"><ShipmentsPanel /></RequirePermission>} />
           </Route>
         </Routes>
       </main>

@@ -1,8 +1,22 @@
 import axiosClient from "./axiosClient";
 
-/* GET ALL */
-export const getCars = async () => {
-  const res = await axiosClient.get("/cars");
+/* GET ALL (optionally with filters, e.g. { make: "Toyota", limit: 12 }) */
+export const getCars = async (params = {}) => {
+  const res = await axiosClient.get("/cars", { params });
+  return res.data.data;
+};
+
+/* GET A PAGE (cars + pagination info) */
+export const getCarsPage = async (params = {}) => {
+  const res = await axiosClient.get("/cars", { params });
+  return res.data;
+};
+
+/* FILTER OPTIONS (makes, models of a make, locations, colors ...) */
+export const getFilterOptions = async (make) => {
+  const res = await axiosClient.get("/cars/meta", {
+    params: make ? { make } : {},
+  });
   return res.data.data;
 };
 
@@ -29,6 +43,7 @@ export const deleteCar = async (id) => {
   const res = await axiosClient.delete(`/cars/${id}`);
   return res.data;
 };
+
 export const setCarStatus = async (id, status) => {
   return updateCar(id, { status });
 };

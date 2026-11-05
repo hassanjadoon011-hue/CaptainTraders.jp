@@ -17,7 +17,7 @@ export default function NotFoundPage() {
         </Link>
         <Link
           to="/cars"
-          className="bg-white border border-[#29ABE2] text-[#1B7DB3] font-semibold px-6 py-2.5 rounded-lg transition hover:bg-blue-50"
+          className="bg-white border border-[#29ABE2] text-[#1B7DB3] font-semibold px-6 py-2.5 rounded-lg transition hover:bg-[#F0FAFF]"
         >
           Browse Cars
         </Link>

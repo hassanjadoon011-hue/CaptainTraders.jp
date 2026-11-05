@@ -7,7 +7,7 @@ const {
   markAllAsRead,
   deleteMessage,
 } = require("../controllers/message.controller");
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
 const { messageLimiter } = require("../middleware/rateLimiters");
 const mongoose = require("mongoose");
 
@@ -22,10 +22,10 @@ const validateId = (req, res, next) => {
 router.post("/", messageLimiter, createMessage);
 
 // PROTECTED (admin only)
-router.get("/", protect, getMessages);
-router.get("/unread-count", protect, getUnreadCount);
-router.patch("/read-all", protect, markAllAsRead);
-router.patch("/:id/read", protect, validateId, markAsRead);
-router.delete("/:id", protect, validateId, deleteMessage);
+router.get("/", protect, authorize("messages.view"), getMessages);
+router.get("/unread-count", protect, authorize("messages.view"), getUnreadCount);
+router.patch("/read-all", protect, authorize("messages.edit"), markAllAsRead);
+router.patch("/:id/read", protect, authorize("messages.edit"), validateId, markAsRead);
+router.delete("/:id", protect, authorize("messages.delete"), validateId, deleteMessage);
 
 module.exports = router;

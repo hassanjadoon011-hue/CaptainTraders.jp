@@ -1,15 +1,5 @@
 import { Link } from 'react-router-dom'
-
-/* ───────────────────────────────────────────────────────────
-   EDIT THESE WITH THE CLIENT'S REAL DETAILS BEFORE LAUNCH
-   (keep them the same as ContactPage and PurchasingPage)
-─────────────────────────────────────────────────────────── */
-const CONTACT = {
-  email: 'info@captaintraders.jp',
-  phone: '+81-6-0000-0000',
-  address: 'Osaka, Japan',
-  hours: 'Mon–Fri 09:00–18:00 JST',
-}
+import { CONTACT } from '../../constants/siteConfig'
 
 const Footer = () => {
   const year = new Date().getFullYear()
@@ -20,7 +10,8 @@ const Footer = () => {
       links: [
         { label: 'Browse Cars', href: '/cars' },
         { label: 'New Arrivals', href: '/cars?sort=newest' },
-        { label: 'Best Deals', href: '/cars?sort=price_asc' },
+        { label: 'Recommended', href: '/cars?recommend=1' },
+        { label: 'Best Deals', href: '/cars?bestDeals=1' },
       ],
     },
     {
@@ -125,18 +116,18 @@ const Footer = () => {
         <div className="mt-14 border-t border-white/10 pt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
 
           <div>
-            <p className="text-sm font-semibold">Verified Japanese Auctions</p>
-            <p className="text-xs text-white/50">Inspection reports included</p>
+            <p className="text-sm font-semibold">Japanese Used Vehicles</p>
+            <p className="text-xs text-white/50">Cars, vans, trucks, buses and more</p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold">Global Shipping Network</p>
-            <p className="text-xs text-white/50">Worldwide export</p>
+            <p className="text-sm font-semibold">Worldwide Export</p>
+            <p className="text-xs text-white/50">Shipping to your nearest port</p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold">Secure Transactions</p>
-            <p className="text-xs text-white/50">Safe international payments</p>
+            <p className="text-sm font-semibold">Bank Transfer Payments</p>
+            <p className="text-xs text-white/50">Telegraphic transfer (T/T) in USD</p>
           </div>
 
         </div>

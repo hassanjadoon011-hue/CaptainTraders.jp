@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Bell, X, Car, MessageSquare, Menu } from "lucide-react";
+import { Search, Bell, X, CarFront, MessageSquare, Menu, Inbox, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
+import { getOrders } from "../../api/orderApi";
+import { orderRef } from "../../constants/stockOptions";
+import { useAdmin, ROLE_LABELS } from "../../context/AdminAuthContext";
 
 export default function AdminHeader({ onMenuClick }) {
   const navigate = useNavigate();
+  const { admin } = useAdmin();
+  const displayName = admin?.name || admin?.email || "Admin";
 
   // SEARCH
   const [query, setQuery] = useState("");
@@ -12,44 +17,63 @@ export default function AdminHeader({ onMenuClick }) {
   const [searching, setSearching] = useState(false);
   const searchRef = useRef(null);
 
-  // NOTIFICATIONS
+  // NOTIFICATIONS (new orders / inquiries + unread messages)
   const [showNotifs, setShowNotifs] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [items, setItems] = useState([]);
+  const [badge, setBadge] = useState(0);
   const notifRef = useRef(null);
 
   const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await axiosClient.get("/messages", { params: { limit: 5 } });
-      setMessages(res.data?.data || []);
-      setUnreadCount(res.data?.unreadCount ?? 0);
-    } catch {
-      setMessages([]);
-      setUnreadCount(0);
-    }
+    const [msgRes, orderRes] = await Promise.allSettled([
+      axiosClient.get("/messages", { params: { limit: 5 } }),
+      getOrders({ status: "new", limit: 5 }),
+    ]);
+
+    const msgs = msgRes.status === "fulfilled" ? msgRes.value.data?.data || [] : [];
+    const unreadMsgs = msgRes.status === "fulfilled" ? msgRes.value.data?.unreadCount ?? 0 : 0;
+
+    const orders = orderRes.status === "fulfilled" ? orderRes.value.data || [] : [];
+    const newOrders = orderRes.status === "fulfilled" ? orderRes.value.counts?.new ?? orders.length : 0;
+
+    const merged = [
+      ...msgs.map((m) => ({ kind: "message", key: m._id, raw: m, createdAt: m.createdAt, unread: !m.isRead })),
+      ...orders.map((o) => ({ kind: "order", key: o._id, raw: o, createdAt: o.createdAt, unread: true })),
+    ]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 6);
+
+    setItems(merged);
+    setBadge(unreadMsgs + newOrders);
   }, []);
 
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     window.addEventListener("messages-updated", fetchNotifications);
+    window.addEventListener("orders-updated", fetchNotifications);
     return () => {
       clearInterval(interval);
       window.removeEventListener("messages-updated", fetchNotifications);
+      window.removeEventListener("orders-updated", fetchNotifications);
     };
   }, [fetchNotifications]);
 
-  const handleNotificationClick = async (message) => {
-    try {
-      if (!message.isRead) {
-        await axiosClient.patch(`/messages/${message._id}/read`);
-        fetchNotifications();
+  const handleNotificationClick = async (item) => {
+    if (item.kind === "message") {
+      try {
+        if (!item.raw.isRead) {
+          await axiosClient.patch(`/messages/${item.raw._id}/read`);
+          fetchNotifications();
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
+      setShowNotifs(false);
+      navigate("/admin/messages");
+    } else {
+      setShowNotifs(false);
+      navigate("/admin/orders");
     }
-    setShowNotifs(false);
-    navigate("/admin/messages");
   };
 
   useEffect(() => {
@@ -103,12 +127,12 @@ export default function AdminHeader({ onMenuClick }) {
   };
 
   return (
-    <header className="h-16 bg-white border-b flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 shadow-sm z-50 relative shrink-0">
+    <header className="h-16 bg-white border-b border-gray-200/70 flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8 z-30 relative shrink-0">
 
       {/* HAMBURGER (mobile only) */}
       <button
         onClick={onMenuClick}
-        className="md:hidden p-2 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 shrink-0"
+        className="md:hidden w-10 h-10 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 flex items-center justify-center shrink-0"
         aria-label="Open menu"
       >
         <Menu size={22} />
@@ -116,16 +140,17 @@ export default function AdminHeader({ onMenuClick }) {
 
       {/* SEARCH */}
       <div ref={searchRef} className="relative flex-1 min-w-0 max-w-sm md:max-w-md">
-        <div className="flex items-center bg-gray-100 px-3 sm:px-4 py-2 rounded-lg gap-2">
+        <div className="flex items-center h-10 bg-gray-50 border border-gray-200 px-3 rounded-lg gap-2 transition focus-within:bg-white focus-within:border-[#29ABE2] focus-within:ring-2 focus-within:ring-[#29ABE2]/20">
           <Search size={16} className="text-gray-400 shrink-0" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search cars..."
-            className="bg-transparent w-full min-w-0 outline-none text-sm text-gray-600 placeholder-gray-400"
+            placeholder="Search cars, chassis or stock no..."
+            aria-label="Quick search"
+            className="bg-transparent w-full min-w-0 outline-none text-base sm:text-sm text-gray-700 placeholder-gray-400"
           />
           {query && (
-            <button onClick={() => { setQuery(""); setSearchResults([]); }}>
+            <button onClick={() => { setQuery(""); setSearchResults([]); }} aria-label="Clear search">
               <X size={14} className="text-gray-400 hover:text-gray-600" />
             </button>
           )}
@@ -147,14 +172,14 @@ export default function AdminHeader({ onMenuClick }) {
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b last:border-0"
                 >
                   <div className="w-7 h-7 bg-[#29ABE2]/10 rounded-lg flex items-center justify-center shrink-0">
-                    <Car size={13} className="text-[#29ABE2]" />
+                    <CarFront size={13} className="text-[#29ABE2]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">
                       {car.make} {car.model}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {car.year} · ${car.price?.toLocaleString()}
+                      {car.stockNo ? `#${car.stockNo} · ` : ""}{car.year} · ${car.price?.toLocaleString()}
                     </p>
                   </div>
                 </button>
@@ -165,19 +190,19 @@ export default function AdminHeader({ onMenuClick }) {
       </div>
 
       {/* RIGHT */}
-      <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
 
         {/* NOTIFICATION BELL */}
         <div ref={notifRef} className="sm:relative">
           <button
             onClick={() => setShowNotifs((p) => !p)}
-            className="relative p-1 text-gray-500 hover:text-[#29ABE2] transition"
+            className="relative w-10 h-10 rounded-lg flex items-center justify-center text-gray-500 hover:text-[#1B7DB3] hover:bg-[#F0FAFF] transition"
             aria-label="Notifications"
           >
             <Bell size={20} />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                {unreadCount > 9 ? "9+" : unreadCount}
+            {badge > 0 && (
+              <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {badge > 9 ? "9+" : badge}
               </span>
             )}
           </button>
@@ -189,71 +214,104 @@ export default function AdminHeader({ onMenuClick }) {
               <div className="px-4 py-3 border-b flex items-center justify-between">
                 <p className="text-sm font-bold text-gray-800">Notifications</p>
                 <span className="text-xs bg-[#29ABE2]/10 text-[#29ABE2] px-2 py-0.5 rounded-full font-medium">
-                  {unreadCount} unread
+                  {badge} new
                 </span>
               </div>
 
               <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                {messages.length === 0 ? (
+                {items.length === 0 ? (
                   <p className="px-4 py-6 text-sm text-center text-gray-400">No notifications</p>
                 ) : (
-                  messages.map((m) => (
-                    <div
-                      key={m._id}
-                      className={`px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${
-                        m.isRead ? "" : "bg-[#29ABE2]/5"
-                      }`}
-                      onClick={() => handleNotificationClick(m)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-7 h-7 bg-green-50 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                          <MessageSquare size={13} className="text-green-500" />
+                  items.map((item) => {
+                    const isOrder = item.kind === "order";
+                    const o = item.raw;
+                    return (
+                      <div
+                        key={`${item.kind}-${item.key}`}
+                        className={`px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${
+                          item.unread ? "bg-[#29ABE2]/5" : ""
+                        }`}
+                        onClick={() => handleNotificationClick(item)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                              isOrder ? "bg-[#29ABE2]/10" : "bg-green-50"
+                            }`}
+                          >
+                            {isOrder ? (
+                              <Inbox size={13} className="text-[#29ABE2]" />
+                            ) : (
+                              <MessageSquare size={13} className="text-green-500" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm text-gray-800 truncate ${item.unread ? "font-bold" : "font-medium"}`}>
+                              {isOrder
+                                ? `${o.customer?.name || "Customer"} · ${o.carInfo?.title || "Vehicle"}`
+                                : o.name}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">
+                              {isOrder
+                                ? `${orderRef(o.orderNo)} · New ${o.type === "order" ? "order" : "inquiry"} from ${o.customer?.country || "customer"}`
+                                : o.message}
+                            </p>
+                          </div>
+                          {item.unread && (
+                            <span className="w-2 h-2 bg-[#29ABE2] rounded-full mt-2 shrink-0" />
+                          )}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm text-gray-800 truncate ${m.isRead ? "font-medium" : "font-bold"}`}>
-                            {m.name}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{m.message}</p>
-                        </div>
-                        {!m.isRead && (
-                          <span className="w-2 h-2 bg-[#29ABE2] rounded-full mt-2 shrink-0" />
-                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
-              <div className="px-4 py-2.5 border-t">
+              <div className="px-4 py-2.5 border-t flex items-center justify-between gap-3">
+                <button
+                  onClick={() => { navigate("/admin/orders"); setShowNotifs(false); }}
+                  className="text-xs text-[#29ABE2] font-semibold hover:underline"
+                >
+                  View all orders →
+                </button>
                 <button
                   onClick={() => { navigate("/admin/messages"); setShowNotifs(false); }}
                   className="text-xs text-[#29ABE2] font-semibold hover:underline"
                 >
-                  View all messages →
+                  View messages →
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* LOGOUT */}
-        <button
-          onClick={handleLogout}
-          className="text-sm text-red-500 font-semibold hover:text-red-600 transition"
-        >
-          Logout
-        </button>
+        <span className="hidden sm:block w-px h-6 bg-gray-200" aria-hidden="true" />
 
-        {/* ADMIN INFO */}
-        <div className="hidden sm:flex items-center gap-3">
-          <div className="text-right hidden lg:block">
-            <p className="text-sm font-bold text-gray-800">Admin</p>
-            <p className="text-xs text-gray-400">Super Admin</p>
-          </div>
-          <div className="w-9 h-9 bg-[#29ABE2] text-white rounded-full flex items-center justify-center font-bold text-sm shadow">
-            A
-          </div>
-        </div>
+        {/* SIGNED-IN USER (static) + LOG OUT */}
+        <button
+          type="button"
+          onClick={() => navigate("/admin/account")}
+          title="My Account"
+          aria-label="My Account"
+          className="flex items-center gap-2.5 h-10 px-1 sm:px-2 rounded-lg hover:bg-gray-50 transition text-left"
+        >
+          <span className="w-8 h-8 bg-[#29ABE2] text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+          <span className="hidden lg:block max-w-[160px] leading-tight">
+            <span className="block text-sm font-semibold text-gray-800 truncate">{displayName}</span>
+            <span className="block text-xs text-gray-500">{ROLE_LABELS[admin?.role] || "Admin"}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Log out"
+          aria-label="Log out"
+          className="h-10 px-2.5 sm:px-3 rounded-lg text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5 transition"
+        >
+          <LogOut size={16} /> <span className="hidden sm:inline">Log out</span>
+        </button>
       </div>
     </header>
   );

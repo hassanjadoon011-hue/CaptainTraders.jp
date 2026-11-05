@@ -2,20 +2,20 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
-        <div className="mb-6">{children}</div>
-        <div className="flex gap-3">
+    <div className="fixed inset-0 bg-[#0A1628]/50 flex items-center justify-center z-[70] p-4" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-xl shadow-2xl p-5 sm:p-6 max-w-md w-full">
+        <h2 className="text-lg font-bold mb-3 text-[#0A1628]">{title}</h2>
+        <div className="mb-5">{children}</div>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold"
+            className="h-10 px-4 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 bg-sky-blue text-white rounded-lg hover:bg-primary-blue transition font-semibold"
+            className="h-10 px-4 rounded-lg bg-[#29ABE2] text-sm font-semibold text-white hover:bg-[#1B7DB3] transition"
           >
             {confirmText}
           </button>

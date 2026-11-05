@@ -1,3 +1,4 @@
+import { SearchX } from "lucide-react";
 import { useLocation, useNavigate } from 'react-router-dom'
 import CarCard from '../components/cars/CarCard'
 
@@ -13,7 +14,7 @@ export default function SearchPage() {
     <div className="bg-[#F5F9FF] min-h-screen">
 
       {/* HEADER */}
-      <div className="bg-sky-400 py-6 px-6">
+      <div className="bg-[#29ABE2] py-6 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-white text-2xl font-bold">Search Results</h1>
@@ -27,7 +28,7 @@ export default function SearchPage() {
           </div>
           <button
             onClick={() => navigate("/")}
-            className="bg-white text-sky-600 font-semibold px-5 py-2 rounded-lg text-sm hover:bg-sky-50 transition"
+            className="bg-white text-[#1B7DB3] font-semibold px-5 py-2 rounded-lg text-sm hover:bg-[#1B7DB3] transition"
           >
             ← Back to Home
           </button>
@@ -38,7 +39,7 @@ export default function SearchPage() {
       <div className="max-w-6xl mx-auto px-6 py-10">
         {cars.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-5xl mb-4">🔍</p>
+            <span className="mx-auto mb-4 w-14 h-14 rounded-full bg-[#E0F5FF] text-[#1B7DB3] flex items-center justify-center"><SearchX size={26} aria-hidden="true" /></span>
             <h2 className="text-xl font-bold text-gray-700">
               {hasQuery ? "No cars found" : "No search yet"}
             </h2>
@@ -50,13 +51,13 @@ export default function SearchPage() {
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
                 onClick={() => navigate("/")}
-                className="bg-sky-400 hover:bg-sky-500 text-white px-8 py-3 rounded-lg font-semibold transition"
+                className="bg-[#29ABE2] hover:bg-[#1B7DB3] text-white px-8 py-3 rounded-lg font-semibold transition"
               >
                 Go Back
               </button>
               <button
                 onClick={() => navigate("/cars")}
-                className="bg-white border border-sky-400 text-sky-600 hover:bg-sky-50 px-8 py-3 rounded-lg font-semibold transition"
+                className="bg-white border border-[#29ABE2] text-[#1B7DB3] hover:bg-[#1B7DB3] px-8 py-3 rounded-lg font-semibold transition"
               >
                 Browse Inventory
               </button>

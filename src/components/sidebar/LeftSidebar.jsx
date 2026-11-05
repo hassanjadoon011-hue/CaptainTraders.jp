@@ -23,10 +23,10 @@ export default function LeftSidebar({ onMakeSelect }) {
 
   return (
     <>
-      {/* PHONES & TABLETS: swipeable row of makes */}
+      {/* PHONES & TABLETS: makes wrap onto lines (no sideways scrolling) */}
       <div className="lg:hidden min-w-0">
         <p className="text-sm font-bold text-gray-900 mb-2">Search by Make</p>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex flex-wrap gap-2 pb-2">
           {carMakes.map((car) => (
             <button
               key={car.name}
@@ -34,7 +34,7 @@ export default function LeftSidebar({ onMakeSelect }) {
               className={`shrink-0 flex items-center gap-2 px-3 py-2 rounded-full border text-sm font-medium transition
                 ${
                   selected === car.name
-                    ? "bg-blue-600 text-white border-blue-600"
+                    ? "bg-[#29ABE2] text-white border-[#29ABE2]"
                     : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                 }`}
             >
@@ -54,7 +54,7 @@ export default function LeftSidebar({ onMakeSelect }) {
 
       {/* LAPTOPS & LARGER: side panel */}
       <aside className="hidden lg:block w-56 xl:w-60 shrink-0 self-start bg-white border rounded-xl overflow-hidden">
-        <div className="bg-black text-white px-4 py-3 text-sm font-bold">
+        <div className="bg-[#0A1628] text-white px-4 py-3 text-sm font-bold">
           Search by Make
         </div>
 
@@ -64,7 +64,7 @@ export default function LeftSidebar({ onMakeSelect }) {
               key={car.name}
               onClick={() => handleClick(car.name)}
               className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition
-                ${selected === car.name ? "bg-blue-600 text-white" : "hover:bg-gray-50"}
+                ${selected === car.name ? "bg-[#29ABE2] text-white" : "hover:bg-gray-50"}
               `}
             >
               <img

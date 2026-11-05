@@ -1,72 +1,177 @@
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Car, PlusCircle, MessageSquare, X } from "lucide-react";
+import {
+  LayoutDashboard, CarFront as Car, PlusCircle, MessageSquare, Inbox, Ship, X, Users, UserCog, Contact, Wallet, Anchor, Landmark, BarChart3,
+} from "lucide-react";
+import axiosClient from "../../api/axiosClient";
+import { getOrders } from "../../api/orderApi";
+import { useAdmin, ROLE_LABELS } from "../../context/AdminAuthContext";
 
 export default function AdminSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
+  const { admin, can } = useAdmin();
+  const displayName = admin?.name || admin?.email || "Admin";
+  const [newOrders, setNewOrders] = useState(0);
+  const [unread, setUnread] = useState(0);
 
-  const linkClass = (path) => {
-    const isActive = pathname === path;
+  // Orders nobody has handled yet + unread messages
+  const loadCounts = useCallback(async () => {
+    const [orders, messages] = await Promise.allSettled([
+      getOrders({ status: "new", limit: 1 }),
+      axiosClient.get("/messages/unread-count"),
+    ]);
+    setNewOrders(orders.status === "fulfilled" ? orders.value?.counts?.new || 0 : 0);
+    setUnread(messages.status === "fulfilled" ? messages.value?.data?.data?.unreadCount || 0 : 0);
+  }, []);
 
-    return `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-      isActive
-        ? "bg-white text-[#29ABE2] shadow-sm"
-        : "text-white/80 hover:bg-white/20 hover:text-white"
+  useEffect(() => {
+    loadCounts();
+    const timer = setInterval(loadCounts, 30000);
+    window.addEventListener("orders-updated", loadCounts);
+    window.addEventListener("messages-updated", loadCounts);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("orders-updated", loadCounts);
+      window.removeEventListener("messages-updated", loadCounts);
+    };
+  }, [loadCounts]);
+
+  // Close the drawer with Escape on phones
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
+  const sections = [
+    {
+      title: "Overview",
+      items: [
+        { to: "/admin", label: "Dashboard", icon: LayoutDashboard, active: pathname === "/admin" },
+        { to: "/admin/reports", label: "Reports", icon: BarChart3, active: pathname.startsWith("/admin/reports"), perm: "finance.view" },
+      ],
+    },
+    {
+      title: "Sales",
+      items: [
+        { to: "/admin/orders", label: "Orders & Inquiries", icon: Inbox, active: pathname.startsWith("/admin/orders"), badge: newOrders },
+        { to: "/admin/customers", label: "Customers", icon: Contact, active: pathname.startsWith("/admin/customers"), perm: "customers.view" },
+        { to: "/admin/payments", label: "Payments", icon: Wallet, active: pathname.startsWith("/admin/payments"), perm: "finance.view" },
+        { to: "/admin/shipments", label: "Shipments", icon: Anchor, active: pathname.startsWith("/admin/shipments"), perm: "shipments.view" },
+        { to: "/admin/messages", label: "Messages", icon: MessageSquare, active: pathname.startsWith("/admin/messages"), badge: unread },
+      ],
+    },
+    {
+      title: "Inventory",
+      items: [
+        { to: "/admin/cars", label: "Cars", icon: Car, active: pathname === "/admin/cars" || pathname.startsWith("/admin/cars/edit") || pathname.endsWith("/costs") },
+        { to: "/admin/cars/new", label: "Add Car", icon: PlusCircle, active: pathname === "/admin/cars/new", perm: "cars.create" },
+        { to: "/admin/shipping", label: "Shipping & Rates", icon: Ship, active: pathname.startsWith("/admin/shipping") },
+        { to: "/admin/import-duties", label: "Import Duties", icon: Landmark, active: pathname.startsWith("/admin/import-duties") },
+      ],
+    },
+    {
+      title: "Settings",
+      items: [
+        { to: "/admin/users", label: "Admin Users", icon: Users, active: pathname.startsWith("/admin/users"), perm: "users.manage" },
+        { to: "/admin/account", label: "My Account", icon: UserCog, active: pathname.startsWith("/admin/account") },
+      ],
+    },
+  ]
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.perm || can(i.perm)) }))
+    .filter((s) => s.items.length > 0);
+
+  const linkClass = (active) =>
+    `group flex items-center gap-3 px-3 h-9 rounded-lg text-sm transition ${
+      active
+        ? "bg-white text-[#1B7DB3] font-semibold shadow-sm"
+        : "text-white/90 font-medium hover:bg-white/15 hover:text-white"
     }`;
-  };
+
 
   return (
-    <aside
-      className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-[#29ABE2] text-white
-        flex flex-col shadow-lg
-        transform transition-transform duration-300 ease-in-out
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        md:static md:translate-x-0 md:h-full md:shrink-0
-      `}
-    >
-      {/* LOGO */}
-      <div className="p-5 border-b border-white/20 flex items-start justify-between">
-        <div>
-          <h1 className="font-bold text-lg tracking-tight">Captain Traders.JP</h1>
-          <p className="text-xs text-white/70 mt-0.5">Admin Panel</p>
+    <>
+      {/* BACKDROP (phones/tablets) */}
+      <div
+        onClick={onClose}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[55] bg-[#0A1628]/50 backdrop-blur-[1px] md:hidden transition-opacity ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
+
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-[60] w-64 max-w-[85vw] bg-[#29ABE2] text-white
+          flex flex-col shadow-2xl md:shadow-none
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:h-dvh md:shrink-0 md:max-w-none
+        `}
+        aria-label="Admin navigation"
+      >
+        {/* BRAND */}
+        <div className="h-16 px-4 flex items-center justify-between gap-2 border-b border-white/20 shrink-0">
+          <NavLink to="/admin" onClick={onClose} className="flex items-center gap-2.5 min-w-0" aria-label="Captain Traders.JP admin home">
+            {/* Same "CT" monogram as the public website */}
+            <span className="w-9 h-9 rounded-xl bg-white text-[#1B7DB3] flex items-center justify-center shrink-0 font-extrabold text-sm tracking-tight shadow-sm">
+              CT
+            </span>
+            <div className="min-w-0 leading-tight">
+              <p className="font-bold text-[15px] tracking-tight truncate">
+                CaptainTraders<span className="font-semibold text-white/75">.JP</span>
+              </p>
+              <p className="text-[11px] font-medium text-white/80">Admin Panel</p>
+            </div>
+          </NavLink>
+          <button
+            onClick={onClose}
+            className="md:hidden w-9 h-9 rounded-lg hover:bg-white/15 flex items-center justify-center transition"
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="md:hidden p-1 rounded hover:bg-white/20"
-          aria-label="Close menu"
-        >
-          <X size={20} />
-        </button>
-      </div>
+        {/* NAV (scrollbar hidden; still scrolls with wheel/touch on short screens) */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {sections.map((section) => (
+            <div key={section.title}>
+              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
+                {section.title}
+              </p>
+              <div className="space-y-0.5">
+                {section.items.map(({ to, label, icon: Icon, active, badge }) => (
+                  <NavLink key={to} to={to} onClick={onClose} className={linkClass(active)} aria-current={active ? "page" : undefined}>
+                    <Icon size={17} className="shrink-0" />
+                    <span className="flex-1 truncate">{label}</span>
+                    {badge > 0 && (
+                      <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center">
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
 
-      {/* NAV */}
-      <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
-        <NavLink to="/admin" onClick={onClose} className={linkClass("/admin")}>
-          <LayoutDashboard size={17} />
-          Dashboard
-        </NavLink>
-
-        <NavLink to="/admin/cars" onClick={onClose} className={linkClass("/admin/cars")}>
-          <Car size={17} />
-          Cars
-        </NavLink>
-
-        <NavLink to="/admin/cars/new" onClick={onClose} className={linkClass("/admin/cars/new")}>
-          <PlusCircle size={17} />
-          Add Car
-        </NavLink>
-
-        <NavLink to="/admin/messages" onClick={onClose} className={linkClass("/admin/messages")}>
-          <MessageSquare size={17} />
-          Messages
-        </NavLink>
-      </nav>
-
-      {/* FOOTER */}
-      <div className="p-4 border-t border-white/20">
-        <p className="text-xs text-white/50 text-center">© 2026 Captain Traders</p>
-      </div>
-    </aside>
+        {/* SIGNED-IN USER (information only: no menu, no arrows) */}
+        <div className="p-3 border-t border-white/20 shrink-0">
+          <div className="flex items-center gap-3 px-2 py-1.5">
+            <span className="w-8 h-8 rounded-full bg-white text-[#1B7DB3] flex items-center justify-center text-sm font-bold shrink-0" aria-hidden="true">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block text-sm font-semibold truncate">{displayName}</span>
+              <span className="block text-[11px] text-white/80">{ROLE_LABELS[admin?.role] || "Admin"}</span>
+            </span>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
