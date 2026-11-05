@@ -83,7 +83,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
     .filter((s) => s.items.length > 0);
 
   const linkClass = (active) =>
-    `group flex items-center gap-3 px-3 h-10 rounded-lg text-sm transition ${
+    `group flex items-center gap-3 px-3 h-9 rounded-lg text-sm transition ${
       active
         ? "bg-white text-[#1B7DB3] font-semibold shadow-sm"
         : "text-white/90 font-medium hover:bg-white/15 hover:text-white"
@@ -135,8 +135,8 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* NAV */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {/* NAV (scrollbar hidden; still scrolls with wheel/touch on short screens) */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {sections.map((section) => (
             <div key={section.title}>
               <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
