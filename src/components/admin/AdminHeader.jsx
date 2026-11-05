@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Bell, X, CarFront, MessageSquare, Menu, Inbox, ChevronDown, UserCog, LogOut } from "lucide-react";
+import { Search, Bell, X, CarFront, MessageSquare, Menu, Inbox, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 import { getOrders } from "../../api/orderApi";
@@ -10,7 +10,6 @@ export default function AdminHeader({ onMenuClick }) {
   const navigate = useNavigate();
   const { admin } = useAdmin();
   const displayName = admin?.name || admin?.email || "Admin";
-  const [showUser, setShowUser] = useState(false);
 
   // SEARCH
   const [query, setQuery] = useState("");
@@ -288,55 +287,31 @@ export default function AdminHeader({ onMenuClick }) {
 
         <span className="hidden sm:block w-px h-6 bg-gray-200" aria-hidden="true" />
 
-        {/* USER MENU */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowUser((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={showUser}
-            aria-label="Account menu"
-            className="flex items-center gap-2.5 h-10 pl-1 pr-1 sm:pr-2 rounded-lg hover:bg-gray-50 transition text-left"
-          >
-            <span className="w-8 h-8 bg-[#29ABE2] text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-            <span className="hidden lg:block max-w-[160px] leading-tight">
-              <span className="block text-sm font-semibold text-gray-800 truncate">{displayName}</span>
-              <span className="block text-xs text-gray-500">{ROLE_LABELS[admin?.role] || "Admin"}</span>
-            </span>
-            <ChevronDown size={15} className="hidden sm:block text-gray-400" />
-          </button>
-
-          {showUser && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowUser(false)} aria-hidden="true" />
-              <div role="menu" className="absolute right-0 top-full mt-2 w-60 bg-white border border-gray-200/70 rounded-xl shadow-xl z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">{admin?.email}</p>
-                  <span className="inline-block mt-1.5 text-[11px] font-semibold text-[#1B7DB3] bg-[#E0F5FF] px-1.5 py-0.5 rounded">
-                    {ROLE_LABELS[admin?.role] || "Admin"}
-                  </span>
-                </div>
-                <button
-                  role="menuitem"
-                  onClick={() => { setShowUser(false); navigate("/admin/account"); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                >
-                  <UserCog size={16} className="text-gray-400" /> My Account
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
-                >
-                  <LogOut size={16} /> Log out
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        {/* SIGNED-IN USER (static) + LOG OUT */}
+        <button
+          type="button"
+          onClick={() => navigate("/admin/account")}
+          title="My Account"
+          aria-label="My Account"
+          className="flex items-center gap-2.5 h-10 px-1 sm:px-2 rounded-lg hover:bg-gray-50 transition text-left"
+        >
+          <span className="w-8 h-8 bg-[#29ABE2] text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+          <span className="hidden lg:block max-w-[160px] leading-tight">
+            <span className="block text-sm font-semibold text-gray-800 truncate">{displayName}</span>
+            <span className="block text-xs text-gray-500">{ROLE_LABELS[admin?.role] || "Admin"}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Log out"
+          aria-label="Log out"
+          className="h-10 px-2.5 sm:px-3 rounded-lg text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5 transition"
+        >
+          <LogOut size={16} /> <span className="hidden sm:inline">Log out</span>
+        </button>
       </div>
     </header>
   );

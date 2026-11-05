@@ -1,7 +1,7 @@
 export const usd = (n) =>
   n === null || n === undefined || n === "" || Number.isNaN(Number(n))
     ? "N/A"
-    : `${Number(n).toLocaleString("en-US", {
+    : "$" + `${Number(n).toLocaleString("en-US", {
         minimumFractionDigits: Number.isInteger(Math.round(Number(n) * 100) / 100) ? 0 : 2, // $217.50, not $217.5
         maximumFractionDigits: 2,
       })}`;

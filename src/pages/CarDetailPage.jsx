@@ -151,15 +151,60 @@ export default function CarDetailPage() {
         </div>
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        {/* Phones: photos → price & calculator → details. Desktop: left column (photos + details) beside the price column. */}
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-5 lg:items-start">
+          <div className="contents lg:block lg:col-span-3 lg:space-y-6 min-w-0">
+            <div className="order-1 min-w-0">
+              <ImageGallery images={car.images || []} alt={title} sold={sold} />
+            </div>
 
-          {/* PHOTOS (phones: first) */}
-          <div className="lg:col-span-3 min-w-0">
-            <ImageGallery images={car.images || []} alt={title} sold={sold} />
+            <div className="order-3 space-y-6 min-w-0">
+
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4">Car Details</h2>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+                  {specs.map(([label, value]) => (
+                    <div key={label} className="flex items-center justify-between gap-4 py-2.5 border-b border-gray-100 text-sm">
+                      <dt className="text-gray-500">{label}</dt>
+                      <dd className="font-semibold text-gray-800 text-right">{value ?? "N/A"}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="text-xs text-gray-400 mt-4">
+                  For more information about the year and month of manufacture, please contact us.
+                </p>
+              </div>
+
+              {car.features?.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                  <h2 className="text-base font-bold text-gray-900 mb-4">Standard Features</h2>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {car.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                        <Check size={15} className="text-[#29ABE2] shrink-0" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {car.description && (
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                  <h2 className="text-base font-bold text-gray-900 mb-3">Description</h2>
+                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{car.description}</p>
+                </div>
+              )}
+            </div>
+
+            {/* INQUIRY FORM (phones: last; desktop: under the details) */}
+            {!sold && (
+              <div className="order-4 min-w-0 print:hidden">
+                <InquiryForm car={car} calc={calc} quote={quote} />
+              </div>
+            )}
           </div>
 
-          {/* PRICE + CALCULATOR (phones: right after photos; desktop: right column) */}
-          <div className="lg:col-span-2 lg:col-start-4 lg:row-start-1 lg:row-span-2 space-y-6 min-w-0">
+          <div className="order-2 lg:col-span-2 space-y-6 min-w-0">
             <div className="lg:sticky lg:top-4 space-y-6">
 
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
@@ -209,54 +254,7 @@ export default function CarDetailPage() {
               )}
             </div>
           </div>
-
-          {/* DETAILS (phones: after the price) */}
-          <div className="lg:col-span-3 lg:col-start-1 space-y-6 min-w-0">
-
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4">Car Details</h2>
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-                {specs.map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between gap-4 py-2.5 border-b border-gray-100 text-sm">
-                    <dt className="text-gray-500">{label}</dt>
-                    <dd className="font-semibold text-gray-800 text-right">{value ?? "N/A"}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="text-xs text-gray-400 mt-4">
-                For more information about the year and month of manufacture, please contact us.
-              </p>
-            </div>
-
-            {car.features?.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-4">Standard Features</h2>
-                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {car.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                      <Check size={15} className="text-[#29ABE2] shrink-0" /> {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {car.description && (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-3">Description</h2>
-                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{car.description}</p>
-              </div>
-            )}
-          </div>
-
         </div>
-
-        {/* FORM */}
-        {!sold && (
-          <div className="mt-8 max-w-4xl print:hidden">
-            <InquiryForm car={car} calc={calc} quote={quote} />
-          </div>
-        )}
 
         {/* MORE CARS */}
         {related.length > 0 && (

@@ -23,10 +23,10 @@ export default function LeftSidebar({ onMakeSelect }) {
 
   return (
     <>
-      {/* PHONES & TABLETS: swipeable row of makes */}
+      {/* PHONES & TABLETS: makes wrap onto lines (no sideways scrolling) */}
       <div className="lg:hidden min-w-0">
         <p className="text-sm font-bold text-gray-900 mb-2">Search by Make</p>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex flex-wrap gap-2 pb-2">
           {carMakes.map((car) => (
             <button
               key={car.name}

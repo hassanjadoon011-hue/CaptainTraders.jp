@@ -39,10 +39,10 @@ const FALLBACK = {
 const MILEAGE_OPTIONS = [50000, 100000, 150000, 200000];
 
 const PRICE_PRESETS = [
-  { label: "Under $1,000", min: "", max: "1000" },
-  { label: "$1,000 – $2,000", min: "1000", max: "2000" },
-  { label: "$2,000 – $3,000", min: "2000", max: "3000" },
-  { label: "Over $3,000", min: "3000", max: "" },
+  { label: "Under $5,000", min: "", max: "5000" },
+  { label: "$5,000 – $10,000", min: "5000", max: "10000" },
+  { label: "$10,000 – $20,000", min: "10000", max: "20000" },
+  { label: "Over $20,000", min: "20000", max: "" },
 ];
 
 const buildSpecs = (car) =>
@@ -247,21 +247,8 @@ export default function CarsListingPage() {
           </div>
         </div>
 
-        {/* Vehicle type tabs */}
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-3 flex gap-2 overflow-x-auto">
-          <TypeTab active={!filters.vehicleType} onClick={() => handleFilter("vehicleType", "")}>
-            All Types
-          </TypeTab>
-          {VEHICLE_TYPES.map((t) => (
-            <TypeTab
-              key={t.value}
-              active={filters.vehicleType === t.value}
-              onClick={() => handleFilter("vehicleType", filters.vehicleType === t.value ? "" : t.value)}
-            >
-              {t.label}
-            </TypeTab>
-          ))}
-        </div>
+        {/* Vehicle type is chosen in the Filters panel (no duplicate scrolling tab bar) */}
+        <div className="pb-3" />
       </div>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5 sm:py-8 flex gap-6">
@@ -555,22 +542,6 @@ function Toggle({ active, onClick, children }) {
   );
 }
 
-function TypeTab({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`shrink-0 text-sm px-4 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
-        active
-          ? "bg-[#29ABE2] text-white border-[#29ABE2] font-medium"
-          : "bg-white border-gray-200 text-gray-600 hover:bg-[#F0FAFF] hover:border-[#29ABE2]"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 /* ─── Price block ─── */
 function Price({ car, size = "text-xl" }) {
